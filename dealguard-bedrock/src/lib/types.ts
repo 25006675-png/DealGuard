@@ -22,6 +22,12 @@ export type Severity = "critical" | "high" | "medium" | "low";
 export type DealStage = "tender" | "loa" | "signed" | "in_progress";
 export type ProjectType = "private" | "government" | "unknown";
 
+/** Language for the interface and for everything the AI writes. */
+export type Lang = "en" | "ms";
+
+// Contract forms the setup form offers (after "Not sure") and document prefill may pick.
+export const STANDARD_FORMS = ["PAM 2018 Subcontract", "CIDB 2022 Subcontract", "PWD 203A / 203N (nominated)", "Bespoke (main contractor's own conditions)"] as const;
+
 export interface DealInput {
   packageType: string;
   contractValue: number; // RM
@@ -35,6 +41,7 @@ export interface DealInput {
   marginPct: number; // expected margin on the package
   monthlyOverhead: number; // RM fixed overhead carried while the job runs
   redLines: RedLines;
+  lang?: Lang; // language the analysis is written in (English when absent)
 }
 
 export interface DocMeta {
@@ -92,6 +99,8 @@ export interface IntakeDocument {
 }
 
 export interface Intake {
+  relevant?: boolean; // false when the uploads clearly aren't a construction deal package
+  relevance_note?: string;
   documents: IntakeDocument[];
   missing_documents: { name: string; why: string }[];
   precedence_note: string;

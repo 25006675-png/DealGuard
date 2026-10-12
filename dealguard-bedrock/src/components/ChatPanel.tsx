@@ -4,6 +4,7 @@ import { ArrowUp, Loader2 } from "lucide-react";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Analysis, ChatMessage } from "@/lib/types";
 import { useEvidence } from "./evidence";
+import { useLang } from "./lang";
 import { RefChip, Sheet } from "./ui";
 
 const SUGGESTIONS = ["What should I negotiate first?", "Can I afford this job on these payment terms?", "How exposed am I to LAD and delays?"];
@@ -72,6 +73,7 @@ export function ChatPanel({
   setMessages: (fn: (m: ChatMessage[]) => ChatMessage[]) => void;
 }) {
   const { open: openRef } = useEvidence();
+  const { t } = useLang();
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const end = useRef<HTMLDivElement>(null);
@@ -94,7 +96,7 @@ export function ChatPanel({
         body: JSON.stringify({ analysis, messages: history }),
       });
       if (!res.ok || !res.body) {
-        const err = await res.json().catch(() => ({ error: "The advisor is unavailable." }));
+        const err = await res.json().catch(() => ({ error: t("The advisor is unavailable.") }));
         throw new Error(err.error);
       }
       const reader = res.body.getReader();
@@ -108,25 +110,25 @@ export function ChatPanel({
         setMessages((m) => [...m.slice(0, -1), { role: "assistant", content: snapshot }]);
       }
     } catch (e) {
-      setMessages((m) => [...m.slice(0, -1), { role: "assistant", content: `⚠ ${e instanceof Error ? e.message : "Something went wrong."}` }]);
+      setMessages((m) => [...m.slice(0, -1), { role: "assistant", content: `⚠ ${e instanceof Error ? e.message : t("Something went wrong.")}` }]);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Sheet open={open} onClose={onClose} width={480} title="Ask DealGuard">
+    <Sheet open={open} onClose={onClose} width={480} title={t("Ask DealGuard")}>
       <div className="flex h-full flex-col">
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
           {!messages.length ? (
             <div>
               <p className="text-[14px] leading-relaxed text-ink-2">
-                Ask about risks, payment, what to negotiate or what to request. Answers come from this analysis and cite the clause IDs you can click.
+                {t("Ask about risks, payment, what to negotiate or what to request. Answers come from this analysis and cite the clause IDs you can click.")}
               </p>
               <div className="mt-4 flex flex-col items-start gap-2">
                 {SUGGESTIONS.map((s) => (
-                  <button key={s} onClick={() => send(s)} className="rounded-full border border-line-strong px-3 py-1.5 text-left text-[13px] hover:border-brand hover:bg-brand-soft">
-                    {s}
+                  <button key={s} onClick={() => send(t(s))} className="rounded-full border border-line-strong px-3 py-1.5 text-left text-[13px] hover:border-brand hover:bg-brand-soft">
+                    {t(s)}
                   </button>
                 ))}
               </div>
@@ -163,14 +165,14 @@ export function ChatPanel({
                   send(draft);
                 }
               }}
-              placeholder="Ask a follow-up question"
+              placeholder={t("Ask a follow-up question")}
               className="max-h-32 flex-1 resize-none bg-transparent py-1 text-[14px] outline-none"
             />
             <button type="submit" disabled={busy || !draft.trim()} className="grid size-8 place-items-center rounded-lg bg-brand text-on-brand disabled:opacity-40" aria-label="Send">
               {busy ? <Loader2 size={16} className="animate-spin" /> : <ArrowUp size={16} />}
             </button>
           </div>
-          <p className="mt-1.5 px-1 text-[11px] text-ink-3">Commercial guidance only, not legal advice.</p>
+          <p className="mt-1.5 px-1 text-[11px] text-ink-3">{t("Commercial guidance only, not legal advice.")}</p>
         </form>
       </div>
     </Sheet>

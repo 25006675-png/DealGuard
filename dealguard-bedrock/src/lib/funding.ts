@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import type { DealInput, FundingExposure, FundingPoint, KeyTerms } from "./types";
 
 // Planning assumptions used when the documents are silent. Shown in the UI.
@@ -22,23 +23,24 @@ const rm = (n: number) => `RM ${Math.round(n).toLocaleString("en-MY")}`;
 export function computeFunding(deal: DealInput, terms: KeyTerms | null): FundingExposure {
   const t = terms ?? ({} as Partial<KeyTerms>);
   const assumptions: FundingExposure["assumptions"] = [];
+  const L = (text: string, vars?: Record<string, string | number>) => tr(deal.lang ?? "en", text, vars);
   const pick = (key: keyof typeof DEFAULTS, label: string, unit: string) => {
     const fromDocs = t[key];
     const value = typeof fromDocs === "number" && fromDocs > 0 ? fromDocs : DEFAULTS[key];
-    assumptions.push({ label, value: `${value}${unit}`, source: fromDocs ? "documents" : "default" });
+    assumptions.push({ label: L(label), value: L(`{n}${unit}`, { n: value }), source: fromDocs ? "documents" : "default" });
     return value;
   };
 
   const value = deal.contractValue > 0 ? deal.contractValue : (t.contract_sum_rm ?? 0);
   assumptions.push({
-    label: "Subcontract value",
+    label: L("Subcontract value"),
     value: rm(value),
     source: deal.contractValue > 0 ? "deal input" : t.contract_sum_rm ? "documents" : "default",
   });
   let weeks: number;
   if (deal.durationWeeks > 0) {
     weeks = Math.round(deal.durationWeeks);
-    assumptions.push({ label: "Duration", value: `${weeks} weeks`, source: "deal input" });
+    assumptions.push({ label: L("Duration"), value: L("{n} weeks", { n: weeks }), source: "deal input" });
   } else {
     weeks = pick("completion_weeks", "Duration", " weeks");
   }
@@ -49,12 +51,12 @@ export function computeFunding(deal: DealInput, terms: KeyTerms | null): Funding
   const retentionPct = pick("retention_pct", "Retention", "%") / 100;
   const retentionCap = (pick("retention_cap_pct", "Retention limit", "% of sum") / 100) * value;
   const advance = Math.max(0, deal.advancePayment);
-  assumptions.push({ label: "Advance payment", value: rm(advance), source: "deal input" });
+  assumptions.push({ label: L("Advance payment"), value: rm(advance), source: "deal input" });
   const marginOk = deal.marginPct > 0 && deal.marginPct < 60;
   const costRatio = 1 - (marginOk ? deal.marginPct : DEFAULT_MARGIN_PCT) / 100;
-  assumptions.push({ label: "Margin", value: `${marginOk ? deal.marginPct : DEFAULT_MARGIN_PCT}%`, source: marginOk ? "deal input" : "default" });
+  assumptions.push({ label: L("Margin"), value: `${marginOk ? deal.marginPct : DEFAULT_MARGIN_PCT}%`, source: marginOk ? "deal input" : "default" });
   const weeklyOverhead = Math.max(0, deal.monthlyOverhead) * (12 / 52);
-  if (weeklyOverhead) assumptions.push({ label: "Fixed overhead", value: `${rm(deal.monthlyOverhead)}/month`, source: "deal input" });
+  if (weeklyOverhead) assumptions.push({ label: L("Fixed overhead"), value: L("{n}/month", { n: rm(deal.monthlyOverhead) }), source: "deal input" });
 
   // S-curve: weekly share of work ∝ sin(π·(w+0.5)/weeks)
   const shares = Array.from({ length: weeks }, (_, w) => Math.sin((Math.PI * (w + 0.5)) / weeks));

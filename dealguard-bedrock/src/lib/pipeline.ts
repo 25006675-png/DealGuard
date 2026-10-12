@@ -2,6 +2,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { bedrockConfig, callMessage, callTool, emptyUsage, type Usage } from "./bedrock";
 import { documentBlocks, type PreparedDoc } from "./documents";
 import { friendlyError } from "./errors";
+import { tr } from "./i18n";
 import { computeFunding } from "./funding";
 import { ledgerForPrompt, parseLedger } from "./ledger";
 import { checkPlaybook, type PlaybookCheck, type RedLines } from "./playbook";
@@ -11,6 +12,7 @@ import {
   FACTS_SYSTEM,
   FACTS_TASK,
   INTAKE_TASK,
+  languageRule,
   specialistTask,
 } from "./prompts";
 import { decisionSchema, intakeSchema, specialistSchema, toInputSchema } from "./schemas";
@@ -27,6 +29,7 @@ import type {
   Gap,
   Intake,
   KeyTerms,
+  Lang,
   PipelineEvent,
   ProvisionRecord,
   SpecialistId,
@@ -90,6 +93,7 @@ export async function runPipeline(
   emit: (e: PipelineEvent) => void,
 ): Promise<Analysis> {
   const cfg = bedrockConfig();
+  const lang = deal.lang ?? "en";
   const runs: AgentRun[] = [];
   const failures: Analysis["failures"] = [];
 
@@ -127,7 +131,7 @@ export async function runPipeline(
       callTool({
         label: "Document intake",
         system,
-        messages: [{ role: "user", content: [...sharedPrefix, { type: "text", text: INTAKE_TASK }] }],
+        messages: [{ role: "user", content: [...sharedPrefix, { type: "text", text: INTAKE_TASK + languageRule(lang) }] }],
         tools: DOC_TOOLS,
         toolName: INTAKE_TOOL.name,
         schema: intakeSchema,
@@ -145,7 +149,7 @@ export async function runPipeline(
             content: [
               { type: "text", text: dealText },
               ...documentBlocks(docs, { citations: true }),
-              { type: "text", text: FACTS_TASK },
+              { type: "text", text: FACTS_TASK + languageRule(lang) },
             ],
           },
         ],
@@ -161,6 +165,15 @@ export async function runPipeline(
   // Both first-stage calls failing almost always means a configuration problem
   // (credentials, model access, region), so stop before spending five more calls.
   if (!intake && !ledger) throw new Error(failures[0]?.message ?? "Document intake failed");
+
+  // Uploads that clearly aren't a construction deal stop here, before the five specialist calls.
+  if (intake?.relevant === false) {
+    throw new Error(
+      [tr(lang, "These don't look like construction subcontract documents."), intake.relevance_note, tr(lang, "Upload a Letter of Award, subcontract conditions, BQ or quotation and try again.")]
+        .filter(Boolean)
+        .join(" "),
+    );
+  }
 
   const facts: Fact[] = ledger?.facts ?? [];
   const gaps: Gap[] = ledger?.gaps ?? [];
@@ -178,7 +191,7 @@ export async function runPipeline(
           messages: [
             {
               role: "user",
-              content: [...sharedPrefix, { type: "text", text: specialistTask(agent, intakeJson, ledgerText) }],
+              content: [...sharedPrefix, { type: "text", text: specialistTask(agent, intakeJson, ledgerText, lang) }],
             },
           ],
           tools: DOC_TOOLS,
@@ -187,7 +200,7 @@ export async function runPipeline(
           effort: DOC_EFFORT,
           usage,
         });
-        return toReview(agent, out, factIds, intake?.terms ?? null, deal.redLines);
+        return toReview(agent, out, factIds, intake?.terms ?? null, deal.redLines, lang);
       }),
     ),
   );
@@ -197,7 +210,7 @@ export async function runPipeline(
   // Stage 3 — rule checks and funding maths (no AI).
   emit({ type: "agent", agent: "scoring", status: "running" });
   const check = dealCheck(reviews.flatMap((r) => r.provisions));
-  const playbook = checkPlaybook(intake?.terms ?? null, deal.redLines);
+  const playbook = checkPlaybook(intake?.terms ?? null, deal.redLines, lang);
   emit({ type: "agent", agent: "scoring", status: "done" });
   emit({ type: "agent", agent: "funding", status: "running" });
   const funding = computeFunding(deal, intake?.terms ?? null);
@@ -208,7 +221,7 @@ export async function runPipeline(
     const out = await callTool({
       label: "Decision",
       system: [{ type: "text", text: DECISION_SYSTEM }],
-      messages: [{ role: "user", content: decisionBrief({ dealText, intake, reviews, check, funding, playbook, gaps, failures }) }],
+      messages: [{ role: "user", content: decisionBrief({ dealText, intake, reviews, check, funding, playbook, gaps, failures }) + languageRule(lang) }],
       tools: [DECISION_TOOL],
       toolName: DECISION_TOOL.name,
       schema: decisionSchema,
@@ -247,6 +260,7 @@ function toReview(
   factIds: Set<string>,
   terms: KeyTerms | null,
   redLines: RedLines,
+  lang: Lang,
 ): SpecialistReview {
   const keep = (ids: string[]) => ids.map((i) => i.trim().toUpperCase()).filter((i) => factIds.has(i));
   // One record per owned provision, in taxonomy order; anything the model skipped is marked unclear.
@@ -266,7 +280,7 @@ function toReview(
           provision_id: def.id,
           status: "unclear" as const,
           headline: def.label,
-          summary: "Not assessed in this run.",
+          summary: tr(lang, "Not assessed in this run."),
           ai_grade: "normal" as const,
           why: "",
           normal: "",
@@ -279,13 +293,13 @@ function toReview(
           obligations: [],
           fact_ids: [],
         };
-    return applyFloor(base, terms, redLines);
+    return applyFloor(base, terms, redLines, lang);
   });
   return {
     agent,
     summary: out.summary,
     provisions,
-    findings: deriveFindings(agent, provisions),
+    findings: deriveFindings(agent, provisions, lang),
     protections: out.protections.map((p) => ({ ...p, fact_ids: keep(p.fact_ids) })),
   };
 }

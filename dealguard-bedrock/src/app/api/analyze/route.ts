@@ -2,6 +2,7 @@ import { bedrockConfig } from "@/lib/bedrock";
 import { runDemoPipeline } from "@/lib/demo";
 import { MAX_FILES, MAX_TOTAL_BYTES, prepareFiles, UnsupportedFileError, type PreparedDoc } from "@/lib/documents";
 import { friendlyError } from "@/lib/errors";
+import { toLang } from "@/lib/i18n";
 import { runPipeline } from "@/lib/pipeline";
 import { sanitizeRedLines } from "@/lib/playbook";
 import type { DealInput, PipelineEvent } from "@/lib/types";
@@ -27,6 +28,7 @@ function parseDeal(raw: FormDataEntryValue | null): DealInput | null {
       marginPct: Math.min(n(d.marginPct), 60),
       monthlyOverhead: n(d.monthlyOverhead),
       redLines: sanitizeRedLines(d.redLines),
+      lang: toLang(d.lang),
     };
   } catch {
     return null;

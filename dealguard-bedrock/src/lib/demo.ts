@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { localizeDemo } from "./demo-ms";
 import { DEMO_PROVISIONS } from "./demo-provisions";
 import { computeFunding } from "./funding";
 import { checkPlaybook } from "./playbook";
@@ -15,6 +16,7 @@ import type {
   Fact,
   Gap,
   Intake,
+  Lang,
   PipelineEvent,
   SpecialistReview,
 } from "./types";
@@ -166,9 +168,10 @@ function buildFacts(texts: string[]): Fact[] {
 
 export async function buildDemoAnalysis(deal: DealInput): Promise<Analysis> {
   const texts = await loadSampleTexts();
+  const lang = deal.lang ?? "en";
   const reviews: SpecialistReview[] = (Object.keys(REVIEWS) as SpecialistReview["agent"][]).map((agent) => {
-    const provisions = provisionsFor(agent).map((def) => applyFloor({ provision_id: def.id, ...DEMO_PROVISIONS[def.id], negotiation: null, change: null }, SAMPLE_TERMS, deal.redLines));
-    return { agent, summary: REVIEWS[agent].summary, provisions, findings: deriveFindings(agent, provisions), protections: REVIEWS[agent].protections };
+    const provisions = provisionsFor(agent).map((def) => applyFloor({ provision_id: def.id, ...DEMO_PROVISIONS[def.id], negotiation: null, change: null }, SAMPLE_TERMS, deal.redLines, lang));
+    return { agent, summary: REVIEWS[agent].summary, provisions, findings: deriveFindings(agent, provisions, lang), protections: REVIEWS[agent].protections };
   });
   const documents: DocMeta[] = SAMPLE_FILES.map((name, index) => ({
     index,
@@ -191,7 +194,8 @@ export async function buildDemoAnalysis(deal: DealInput): Promise<Analysis> {
     ] as [AgentId, number, number, number, number][]
   ).map(([agent, ms, inputTokens, outputTokens, cacheReadTokens]) => ({ agent, ms, inputTokens, outputTokens, cacheReadTokens }));
 
-  return {
+  // The sample analysis is written in English; in Bahasa Malaysia its text is swapped for the prepared translation.
+  return localizeDemo<Analysis>({
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     mode: "demo",
@@ -203,12 +207,12 @@ export async function buildDemoAnalysis(deal: DealInput): Promise<Analysis> {
     gaps: GAPS,
     reviews,
     check: dealCheck(reviews.flatMap((r) => r.provisions)),
-    playbook: checkPlaybook(INTAKE.terms, deal.redLines),
+    playbook: checkPlaybook(INTAKE.terms, deal.redLines, lang),
     funding: computeFunding(deal, INTAKE.terms),
     decision: DECISION,
     runs,
     failures: [],
-  };
+  }, lang);
 }
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -231,23 +235,24 @@ export async function runDemoPipeline(deal: DealInput, emit: (e: PipelineEvent) 
 
 const DEMO_REPLIES: [RegExp, string][] = [
   [
-    /first|priorit|negotiat|ask/i,
+    /first|priorit|negotiat|ask|runding|dahulu|minta/i,
     "Start with payment. Ask Contoh Bina to delete the pay-when-paid proviso [F12] and move to 14-day certification and 30-day payment [F10] [F11]. That one change does more for your cash than everything else combined [PAY-1] [PAY-2].\n\nSecond, ask for a 10% advance against an advance payment bond [PAY-4].\n\nNext step: send these two asks in writing before the 3-day acceptance deadline [F36], and ask for 14 days to review the final conditions.",
   ],
   [
-    /cash|fund|money|gap|afford/i,
+    /cash|fund|money|gap|afford|tunai|dana|wang|mampu|bayar/i,
     "On the current terms you claim monthly [F09], wait up to 21 days for certification [F10] and then 60 days for payment [F11]. With no advance [F08], the funding model shows you carrying over RM 2M at peak, against the RM 300k you have.\n\nIf payment also slips 30 days, the gap grows further. Pay-when-paid [F12] makes that slippage more likely.\n\nNext step: don't mobilise until payment terms or an advance are agreed.",
   ],
   [
-    /lad|delay|eot|time/i,
+    /lad|delay|eot|time|lewat|masa/i,
     "LAD is RM 8,000 a day [F17] with no cap stated [G01], and you also indemnify Contoh Bina against the employer's LAD [F18]. A 4-week delay is RM 224,000 [TIM-2].\n\nWorse, you only get EOT if the employer grants it to Contoh Bina [F20], and late notice kills the claim [F19] [TIM-1].\n\nNext step: ask for EOT for any delay you didn't cause, and a combined LAD cap of 10% of the sum.",
   ],
 ];
 
-export function demoReply(question: string) {
+export function demoReply(question: string, lang?: Lang) {
   const hit = DEMO_REPLIES.find(([re]) => re.test(question));
-  return (
+  return localizeDemo(
     hit?.[1] ??
-    "This is demo mode, so I answer from the sample analysis only. The short version: don't sign this week. Payment terms [PAY-1] [PAY-2], back-to-back EOT [TIM-1] and the contractor's power to resolve conflicts [DOC-2] all need to change first.\n\nConnect Bedrock (see BEDROCK_SETUP.md) to ask anything about your own documents."
+    "This is demo mode, so I answer from the sample analysis only. The short version: don't sign this week. Payment terms [PAY-1] [PAY-2], back-to-back EOT [TIM-1] and the contractor's power to resolve conflicts [DOC-2] all need to change first.\n\nConnect Bedrock (see BEDROCK_SETUP.md) to ask anything about your own documents.",
+    lang,
   );
 }

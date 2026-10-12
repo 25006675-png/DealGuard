@@ -1,8 +1,9 @@
 import { bedrockConfig, getClient } from "@/lib/bedrock";
 import { analysisContext } from "@/lib/context";
 import { DEMO_DRAFTS } from "@/lib/demo-drafts";
+import { DEMO_DRAFTS_MS } from "@/lib/demo-ms";
 import { friendlyError } from "@/lib/errors";
-import { DRAFT_SYSTEM, DRAFT_TASKS, type DraftKind } from "@/lib/prompts";
+import { DRAFT_SYSTEM, DRAFT_TASKS, languageRule, type DraftKind } from "@/lib/prompts";
 import type { Analysis } from "@/lib/types";
 
 export const maxDuration = 120;
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
     async start(controller) {
       try {
         if (cfg.demo) {
-          for (const chunk of DEMO_DRAFTS[kind].match(/[^\n]*\n?/g) ?? []) {
+          for (const chunk of (analysis.deal?.lang === "ms" ? DEMO_DRAFTS_MS : DEMO_DRAFTS)[kind].match(/[^\n]*\n?/g) ?? []) {
             controller.enqueue(encoder.encode(chunk));
             await new Promise((r) => setTimeout(r, 12));
           }
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
               { type: "text", text: DRAFT_SYSTEM },
               { type: "text", text: analysisContext(analysis), cache_control: { type: "ephemeral" } },
             ],
-            messages: [{ role: "user", content: DRAFT_TASKS[kind].task }],
+            messages: [{ role: "user", content: DRAFT_TASKS[kind].task + languageRule(analysis.deal?.lang) }],
           });
           for await (const event of events) {
             if (event.type === "content_block_delta" && event.delta.type === "text_delta") {

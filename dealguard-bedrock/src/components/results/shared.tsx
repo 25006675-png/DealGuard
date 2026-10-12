@@ -3,6 +3,7 @@
 import { CircleCheck, CircleHelp, OctagonAlert, TriangleAlert } from "lucide-react";
 import type { PlaybookCheck } from "@/lib/playbook";
 import type { Grade, ObligationPhase, ProvisionRecord } from "@/lib/types";
+import { useLang } from "../lang";
 import { Card } from "../ui";
 
 export function Stat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "bad" }) {
@@ -33,17 +34,18 @@ export const CHECK_STYLE = {
 } as const;
 
 export function CheckRow({ check, compact }: { check: PlaybookCheck; compact?: boolean }) {
+  const { t } = useLang();
   const s = CHECK_STYLE[check.status];
   return (
     <li className="flex items-start gap-3 px-5 py-2.5">
-      <s.Icon size={17} className="mt-0.5 shrink-0" style={{ color: s.color }} aria-label={s.label} />
+      <s.Icon size={17} className="mt-0.5 shrink-0" style={{ color: s.color }} aria-label={t(s.label)} />
       <div className="min-w-0 flex-1">
         <p className="text-[14px]">
           <span className="font-medium">{check.label}</span>
-          {compact ? null : <span className="ml-2 text-[12px] text-ink-3">{check.source}</span>}
+          {compact ? null : <span className="ml-2 text-[12px] text-ink-3">{t(check.source)}</span>}
         </p>
         <p className="text-[13px] text-ink-2">
-          Rule {check.rule} · <span style={{ color: s.text }}>deal {check.actual}</span>
+          {t("Rule")} {check.rule} · <span style={{ color: s.text }}>{t("deal")} {check.actual}</span>
         </p>
       </div>
     </li>
@@ -57,11 +59,12 @@ export const GRADE_STYLE: Record<Grade, { label: string; color: string; text: st
 };
 
 export function GradeBadge({ grade }: { grade: Grade }) {
+  const { t } = useLang();
   const g = GRADE_STYLE[grade];
   return (
     <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium" style={{ background: g.soft, color: g.text }}>
       <g.Icon size={13} strokeWidth={2.25} style={{ color: g.color }} aria-hidden />
-      {g.label}
+      {t(g.label)}
     </span>
   );
 }

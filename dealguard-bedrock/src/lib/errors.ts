@@ -1,9 +1,12 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { bedrockConfig } from "./bedrock";
+import { bedrockConfig, RefusalError } from "./bedrock";
 
 /** Turn Bedrock/SDK errors into something a user can act on. */
 export function friendlyError(err: unknown): string {
   const cfg = bedrockConfig();
+  if (err instanceof RefusalError) {
+    return "DealGuard couldn't process this: the AI's safety checks declined the content. It only reviews construction subcontract documents and questions about them.";
+  }
   if (err instanceof Anthropic.AuthenticationError) {
     return "Bedrock rejected the credentials. Check BEDROCK_API_KEY (keys can expire) or your AWS credentials, then restart the server.";
   }

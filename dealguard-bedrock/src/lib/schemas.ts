@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { STANDARD_FORMS } from "./types";
 
 // Tool input schemas. Bedrock's Messages endpoint does not offer structured
 // outputs, so each agent reports through a tool call that we validate here.
@@ -21,7 +22,18 @@ export const keyTermsSchema = z.object({
   pay_when_paid: z.boolean().nullable().describe("True if payment depends on the contractor being paid by the employer"),
 });
 
+// Guards against uploads that have nothing to do with a construction deal (a menu, a CV, a random article).
+const relevance = {
+  relevant: z
+    .boolean()
+    .describe(
+      "False only if the uploads are clearly not construction contract, subcontract, tender or quotation documents at all (e.g. a menu, a CV, an unrelated article, blank or abusive content). True if any document is plausibly part of a construction deal package, even if incomplete, a draft, poorly scanned or in another language",
+    ),
+  relevance_note: z.string().describe("If relevant is false, one plain sentence saying what the uploads appear to be. Empty string otherwise"),
+};
+
 export const intakeSchema = z.object({
+  ...relevance,
   documents: z
     .array(
       z.object({
@@ -115,6 +127,18 @@ export const decisionSchema = z.object({
   }),
 });
 
+// A quick first read of the uploads, used to fill in the setup form before the full review.
+export const prefillSchema = z.object({
+  ...relevance,
+  package_type: z.string().nullable().describe("The trade and package in a few words, as the documents name it, e.g. 'Bored piling and empty bore works (Package P2)'; null if unclear"),
+  contract_sum_rm: num("Subcontract sum in RM, or null if not stated"),
+  completion_weeks: num("Subcontract duration in weeks (convert months or days), or null if not stated"),
+  advance_payment_rm: num("Advance payment offered in RM (work a percentage out from the sum), or null if none is stated"),
+  standard_form: z.enum(STANDARD_FORMS).nullable().describe("The contract form the subcontract is based on; bespoke if the main contractor wrote its own conditions; null if you can't tell"),
+  project_type: z.enum(["private", "government"]).nullable().describe("Whether the employer is a private or a government body; null if you can't tell"),
+});
+
+export type PrefillOutput = z.infer<typeof prefillSchema>;
 export type IntakeOutput = z.infer<typeof intakeSchema>;
 export type SpecialistOutput = z.infer<typeof specialistSchema>;
 export type DecisionOutput = z.infer<typeof decisionSchema>;

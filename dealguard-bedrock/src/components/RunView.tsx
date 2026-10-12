@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { AGENTS } from "@/lib/agents";
 import type { AgentId } from "@/lib/types";
+import { useLang } from "./lang";
 import type { NodeState } from "./PipelineScene";
 import { Card } from "./ui";
 
@@ -18,6 +19,7 @@ export function StatusIcon({ state, calc }: { state: NodeState; calc?: boolean }
 }
 
 export function RunView({ status, details, demo }: { status: Partial<Record<AgentId, NodeState>>; details: Partial<Record<AgentId, string>>; demo: boolean }) {
+  const { t } = useLang();
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
     const started = Date.now();
@@ -32,14 +34,15 @@ export function RunView({ status, details, demo }: { status: Partial<Record<Agen
     <div className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[13px] font-medium text-ink-3">Analysing your deal</p>
+          <p className="text-[13px] font-medium text-ink-3">{t("Analysing your deal")}</p>
           <h1 className="mt-1 text-[28px] font-semibold tracking-tight">
-            {current.length ? `${current.map((a) => a.short).join(", ")}…` : done === AGENTS.length ? "Putting the decision together…" : "Starting…"}
+            {current.length ? `${current.map((a) => t(a.short)).join(", ")}…` : done === AGENTS.length ? t("Putting the decision together…") : t("Starting…")}
           </h1>
         </div>
         <p className="text-sm tabular text-ink-2">
-          {done} of {AGENTS.length} steps · {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
-          {demo ? " · demo replay" : " · usually 2–4 min"}
+          {t("{done} of {total} steps", { done, total: AGENTS.length })} · {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
+          {" · "}
+          {demo ? t("demo replay") : t("usually 2–4 min")}
         </p>
       </div>
       <div className="mt-2 h-1 overflow-hidden rounded-full bg-sunken">
@@ -51,7 +54,7 @@ export function RunView({ status, details, demo }: { status: Partial<Record<Agen
           <div className="absolute inset-0">
             <PipelineScene status={status} className="h-full w-full" />
           </div>
-          <p className="absolute bottom-3 left-4 text-[12px] text-ink-3">Inputs at the back · decision at the front</p>
+          <p className="absolute bottom-3 left-4 text-[12px] text-ink-3">{t("Inputs at the back · decision at the front")}</p>
         </Card>
         <Card className="p-2">
           <ol aria-live="polite" className="divide-y divide-line">
@@ -63,8 +66,8 @@ export function RunView({ status, details, demo }: { status: Partial<Record<Agen
                     <StatusIcon state={s} calc={a.kind === "calculation"} />
                   </span>
                   <div className="min-w-0">
-                    <p className={s === "idle" ? "text-sm text-ink-3" : "text-sm font-medium"}>{a.label}</p>
-                    <p className="text-[12px] leading-snug text-ink-3">{s === "failed" ? details[a.id] : a.blurb}</p>
+                    <p className={s === "idle" ? "text-sm text-ink-3" : "text-sm font-medium"}>{t(a.label)}</p>
+                    <p className="text-[12px] leading-snug text-ink-3">{s === "failed" ? details[a.id] : t(a.blurb)}</p>
                   </div>
                 </li>
               );

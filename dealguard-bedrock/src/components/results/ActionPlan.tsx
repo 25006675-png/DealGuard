@@ -7,6 +7,7 @@ import { rmCompact, VERDICT } from "@/lib/format";
 import { PROVISION_BY_ID } from "@/lib/provisions";
 import type { Analysis, ProvisionRecord } from "@/lib/types";
 import { useEvidence } from "../evidence";
+import { useLang } from "../lang";
 import { Card, cx } from "../ui";
 import { useGuides } from "./guides";
 import { GRADE_STYLE, GradeBadge } from "./shared";
@@ -27,6 +28,7 @@ export function orderRisky(a: Analysis) {
 
 function RiskCard({ p, index, selected, onToggle }: { p: ProvisionRecord; index: number; selected: boolean; onToggle: () => void }) {
   const { open } = useEvidence();
+  const { t } = useLang();
   const [guide, setGuide] = useState(index === 0);
   const [copied, setCopied] = useState(false);
   const g = GRADE_STYLE[p.grade];
@@ -44,7 +46,7 @@ function RiskCard({ p, index, selected, onToggle }: { p: ProvisionRecord; index:
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-3">
               <GradeBadge grade={p.grade} />
-              <span>{PROVISION_BY_ID[p.provision_id]?.label}</span>
+              <span>{t(PROVISION_BY_ID[p.provision_id]?.label ?? "")}</span>
               {clauseRef ? <span className="font-mono">· {clauseRef}</span> : null}
             </div>
             <h3 className="mt-2 text-[19px] font-semibold leading-snug tracking-tight">{p.headline}</h3>
@@ -59,24 +61,24 @@ function RiskCard({ p, index, selected, onToggle }: { p: ProvisionRecord; index:
             )}
           >
             <span className={cx("grid size-4 place-items-center rounded border", selected ? "border-on-brand" : "border-line-strong")}>{selected ? <Check size={12} strokeWidth={3} aria-hidden /> : null}</span>
-            {selected ? "In my changes" : "Ask for this"}
+            {selected ? t("In my changes") : t("Ask for this")}
           </button>
         </div>
 
         <div className="mt-4 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-[1fr_1fr_auto]">
           <div className="bg-surface px-4 py-3">
-            <p className="text-[11.5px] font-medium uppercase tracking-wide text-ink-3">Normal</p>
+            <p className="text-[11.5px] font-medium uppercase tracking-wide text-ink-3">{t("Normal")}</p>
             <p className="mt-0.5 text-[14.5px]">{p.normal}</p>
           </div>
           <div className="px-4 py-3" style={{ background: g.soft }}>
             <p className="text-[11.5px] font-medium uppercase tracking-wide" style={{ color: g.text }}>
-              Yours
+              {t("Yours")}
             </p>
             <p className="mt-0.5 text-[14.5px] font-medium">{p.yours}</p>
           </div>
           {p.cost_rm ? (
             <div className="bg-surface px-4 py-3 sm:min-w-44">
-              <p className="text-[11.5px] font-medium uppercase tracking-wide text-ink-3">Could cost you</p>
+              <p className="text-[11.5px] font-medium uppercase tracking-wide text-ink-3">{t("Could cost you")}</p>
               <p className="mt-0.5 text-[18px] font-semibold tracking-tight">{rmCompact(p.cost_rm)}</p>
               {p.cost_note ? <p className="text-[11.5px] leading-snug text-ink-3">{p.cost_note}</p> : null}
             </div>
@@ -92,16 +94,18 @@ function RiskCard({ p, index, selected, onToggle }: { p: ProvisionRecord; index:
             className="flex items-center gap-1 text-[13.5px] font-medium text-brand hover:underline"
             aria-expanded={guide}
           >
-            How to negotiate this <ChevronDown size={15} className={cx("transition-transform", guide && "rotate-180")} aria-hidden />
+            {t("How to negotiate this")} <ChevronDown size={15} className={cx("transition-transform", guide && "rotate-180")} aria-hidden />
           </button>
           {sourceId ? (
             <button onClick={() => open(sourceId)} className="flex items-center gap-1.5 text-[13.5px] font-medium text-ink-2 hover:text-brand">
-              <FileSearch size={15} aria-hidden /> Show me the clause
+              <FileSearch size={15} aria-hidden /> {t("Show me the clause")}
             </button>
           ) : (
-            <span className="text-[13px] text-ink-3">Not in your documents; ask for it to be added</span>
+            <span className="text-[13px] text-ink-3">{t("Not in your documents; ask for it to be added")}</span>
           )}
-          {p.rule_note ? <span className="text-[12.5px] text-ink-3">Rule check: {p.rule_note}</span> : null}
+          {p.rule_note ? <span className="text-[12.5px] text-ink-3">
+              {t("Rule check:")} {p.rule_note}
+            </span> : null}
         </div>
 
         <AnimatePresence initial={false}>
@@ -120,7 +124,7 @@ function RiskCard({ p, index, selected, onToggle }: { p: ProvisionRecord; index:
                 ).map(([label, text, bg, fg]) => (
                   <div key={label} className="rounded-lg px-3.5 py-3" style={{ background: bg }}>
                     <dt className="text-[12px] font-semibold" style={{ color: fg }}>
-                      {label}
+                      {t(label)}
                     </dt>
                     <dd className="mt-1 text-[14px] leading-snug">{text}</dd>
                   </div>
@@ -137,7 +141,7 @@ function RiskCard({ p, index, selected, onToggle }: { p: ProvisionRecord; index:
                   }}
                   className="flex shrink-0 items-center gap-1 text-[12px] font-medium text-brand hover:underline"
                 >
-                  {copied ? <Check size={13} aria-hidden /> : <Copy size={13} aria-hidden />} {copied ? "Copied" : "Copy what to say"}
+                  {copied ? <Check size={13} aria-hidden /> : <Copy size={13} aria-hidden />} {copied ? t("Copied") : t("Copy what to say")}
                 </button>
               </div>
             </motion.div>
@@ -150,12 +154,13 @@ function RiskCard({ p, index, selected, onToggle }: { p: ProvisionRecord; index:
 
 /** Shown while a guide is being generated, or if generating it failed. */
 export function GuidePending({ state, onRetry }: { state: ReturnType<typeof useGuides>["state"][string] | undefined; onRetry: () => void }) {
+  const { t } = useLang();
   if (state?.status === "error") {
     return (
       <div className="mt-4 flex items-center justify-between gap-3 rounded-lg px-3.5 py-3 text-[13.5px]" style={{ background: "var(--warning-soft)", color: "var(--warning-text)" }}>
         <span>{state.message}</span>
         <button onClick={onRetry} className="flex shrink-0 items-center gap-1 font-medium hover:underline">
-          <RotateCw size={13} aria-hidden /> Retry
+          <RotateCw size={13} aria-hidden /> {t("Retry")}
         </button>
       </div>
     );
@@ -166,13 +171,13 @@ export function GuidePending({ state, onRetry }: { state: ReturnType<typeof useG
         <div key={label} className="rounded-lg bg-surface-2 px-3.5 py-3">
           <p className="flex items-center gap-1.5 text-[12px] font-semibold text-ink-3">
             {i === 0 ? <Loader2 size={12} className="animate-spin" aria-hidden /> : null}
-            {label}
+            {t(label)}
           </p>
           <div className="mt-2 h-2.5 w-4/5 animate-pulse rounded bg-sunken" />
           <div className="mt-1.5 h-2.5 w-3/5 animate-pulse rounded bg-sunken" />
         </div>
       ))}
-      <p className="text-[12.5px] text-ink-3 sm:col-span-3">Preparing your negotiation guide from the clause…</p>
+      <p className="text-[12.5px] text-ink-3 sm:col-span-3">{t("Preparing your negotiation guide from the clause…")}</p>
     </div>
   );
 }
@@ -188,6 +193,7 @@ export function ActionPlan({
   onToggle: (id: string) => void;
   goTo: (tab: "changes" | "breakdown" | "cash" | "sources") => void;
 }) {
+  const { t } = useLang();
   const { top, rest, normal } = orderRisky(analysis);
   const [showRest, setShowRest] = useState(false);
   const [showNormal, setShowNormal] = useState(false);
@@ -204,26 +210,26 @@ export function ActionPlan({
       <div>
         {v ? (
           <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] font-semibold" style={{ background: v.soft, color: v.text }}>
-            <Hand size={14} aria-hidden /> {v.label}
+            <Hand size={14} aria-hidden /> {t(v.label)}
           </span>
         ) : null}
-        <h2 className="mt-3 text-[26px] font-semibold leading-tight tracking-tight sm:text-[30px]">{d?.headline ?? "Here's what to fix before you sign."}</h2>
+        <h2 className="mt-3 text-[26px] font-semibold leading-tight tracking-tight sm:text-[30px]">{d?.headline ?? t("Here's what to fix before you sign.")}</h2>
         {d?.summary ? <p className="mt-2 max-w-[70ch] text-[16px] leading-relaxed text-ink-2">{d.summary}</p> : null}
       </div>
 
       {/* Proof */}
       <ul className="mt-5 flex flex-wrap gap-2 text-[13px]">
         <li className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5">
-          <BadgeCheck size={14} style={{ color: "var(--good)" }} aria-hidden /> {provisions.length} of 23 contract points checked
+          <BadgeCheck size={14} style={{ color: "var(--good)" }} aria-hidden /> {t("{n} of 23 contract points checked", { n: provisions.length })}
         </li>
         <li>
           <button onClick={() => goTo("sources")} className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 hover:border-brand">
-            <BadgeCheck size={14} style={{ color: "var(--good)" }} aria-hidden /> {quotes} quotes matched to your documents
+            <BadgeCheck size={14} style={{ color: "var(--good)" }} aria-hidden /> {t("{n} quotes matched to your documents", { n: quotes })}
           </button>
         </li>
         {missingDocs.slice(0, 2).map((m) => (
           <li key={m.name} className="flex items-center gap-1.5 rounded-full px-3 py-1.5" style={{ background: "var(--warning-soft)", color: "var(--warning-text)" }} title={m.why}>
-            <FileWarning size={14} aria-hidden /> Not provided: {m.name}
+            <FileWarning size={14} aria-hidden /> {t("Not provided:")} {m.name}
           </li>
         ))}
       </ul>
@@ -244,7 +250,7 @@ export function ActionPlan({
                 <g.Icon size={20} style={{ color: g.color }} aria-hidden />
                 {count}
               </p>
-              <p className="text-[13px] text-ink-2">{label}</p>
+              <p className="text-[13px] text-ink-2">{t(label)}</p>
             </div>
           );
         })}
@@ -258,22 +264,23 @@ export function ActionPlan({
               <Wallet size={20} aria-hidden />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[17px] font-semibold">Can you afford this job? Not on these terms.</p>
+              <p className="text-[17px] font-semibold">{t("Can you afford this job? Not on these terms.")}</p>
               <p className="mt-0.5 text-[14.5px] text-ink-2">
-                You&apos;d need <strong className="text-ink">{rmCompact(f.peakNeed)}</strong> before payments catch up, around week {f.peakWeek}. You have{" "}
-                {rmCompact(analysis.deal.fundingCommitment)}, so you&apos;re <strong style={{ color: "var(--critical-text)" }}>{rmCompact(f.gap)} short</strong>.
+                {t("You'd need")} <strong className="text-ink">{rmCompact(f.peakNeed)}</strong>{" "}
+                {t("before payments catch up, around week {week}. You have {have}, so you're", { week: f.peakWeek, have: rmCompact(analysis.deal.fundingCommitment) })}{" "}
+                <strong style={{ color: "var(--critical-text)" }}>{t("{gap} short", { gap: rmCompact(f.gap) })}</strong>.
               </p>
             </div>
             <button onClick={() => goTo("cash")} className="flex items-center gap-1 text-[13.5px] font-medium text-brand hover:underline">
-              See the cash flow <ArrowRight size={14} aria-hidden />
+              {t("See the cash flow")} <ArrowRight size={14} aria-hidden />
             </button>
           </div>
         </Card>
       ) : null}
 
       {/* Risky points */}
-      <h3 className="mt-10 text-[20px] font-semibold tracking-tight">Fix these first</h3>
-      <p className="mt-1 text-[14px] text-ink-2">Tick the ones you want to ask for. We&apos;ll turn them into proposed contract changes and a reply letter.</p>
+      <h3 className="mt-10 text-[20px] font-semibold tracking-tight">{t("Fix these first")}</h3>
+      <p className="mt-1 text-[14px] text-ink-2">{t("Tick the ones you want to ask for. We'll turn them into proposed contract changes and a reply letter.")}</p>
       <div className="mt-4 space-y-4">
         {top.map((p, i) => (
           <RiskCard key={p.provision_id} p={p} index={i} selected={selected.has(p.provision_id)} onToggle={() => onToggle(p.provision_id)} />
@@ -284,8 +291,8 @@ export function ActionPlan({
         <div className="mt-8">
           <button onClick={() => setShowRest(!showRest)} className="flex w-full items-center justify-between rounded-xl border border-line bg-surface px-5 py-3.5 text-left hover:bg-surface-2" aria-expanded={showRest}>
             <span>
-              <span className="text-[16px] font-semibold">Also worth asking</span>
-              <span className="ml-2 text-[13.5px] text-ink-3">{rest.length} points · ask if you have room, concede if needed</span>
+              <span className="text-[16px] font-semibold">{t("Also worth asking")}</span>
+              <span className="ml-2 text-[13.5px] text-ink-3">{t("{n} points · ask if you have room, concede if needed", { n: rest.length })}</span>
             </span>
             <ChevronDown size={18} className={cx("text-ink-3 transition-transform", showRest && "rotate-180")} aria-hidden />
           </button>
@@ -303,8 +310,8 @@ export function ActionPlan({
         <div className="mt-4">
           <button onClick={() => setShowNormal(!showNormal)} className="flex w-full items-center justify-between rounded-xl border border-line bg-surface px-5 py-3.5 text-left hover:bg-surface-2" aria-expanded={showNormal}>
             <span>
-              <span className="text-[16px] font-semibold">Looks normal</span>
-              <span className="ml-2 text-[13.5px] text-ink-3">{normal.length} points · usual for Malaysian subcontracts</span>
+              <span className="text-[16px] font-semibold">{t("Looks normal")}</span>
+              <span className="ml-2 text-[13.5px] text-ink-3">{t("{n} points · usual for Malaysian subcontracts", { n: normal.length })}</span>
             </span>
             <ChevronDown size={18} className={cx("text-ink-3 transition-transform", showNormal && "rotate-180")} aria-hidden />
           </button>
@@ -328,14 +335,14 @@ export function ActionPlan({
       <div className="no-print fixed inset-x-0 bottom-0 z-20 border-t border-line bg-[color-mix(in_srgb,var(--surface)_92%,transparent)] backdrop-blur">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <p className="text-[14px]">
-            <span className="font-semibold">{selected.size}</span> change{selected.size === 1 ? "" : "s"} selected
+            <span className="font-semibold">{selected.size}</span> {selected.size === 1 ? t("change selected") : t("changes selected")}
           </p>
           <button
             onClick={() => goTo("changes")}
             disabled={!selected.size}
             className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-[14.5px] font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50"
           >
-            Review proposed changes <ArrowRight size={16} aria-hidden />
+            {t("Review proposed changes")} <ArrowRight size={16} aria-hidden />
           </button>
         </div>
       </div>

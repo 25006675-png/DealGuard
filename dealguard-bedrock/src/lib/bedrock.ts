@@ -22,6 +22,9 @@ export function bedrockConfig() {
   } as const;
 }
 
+/** The model declined the request (its own safety checks), as opposed to a technical failure. */
+export class RefusalError extends Error {}
+
 type BedrockClient = { messages: Pick<Anthropic.Messages, "create" | "stream"> };
 
 let client: BedrockClient | null = null;
@@ -100,7 +103,7 @@ function decodeJsonStrings(input: unknown): unknown {
 export async function callMessage(call: BaseCall): Promise<Anthropic.Message> {
   const msg = await request(call, {});
   addUsage(call.usage, msg.usage);
-  if (msg.stop_reason === "refusal") throw new Error(`${call.label}: the model declined this request`);
+  if (msg.stop_reason === "refusal") throw new RefusalError(`${call.label}: the model declined this request`);
   return msg;
 }
 
@@ -117,7 +120,7 @@ export async function callTool<T>(
   for (let attempt = 0; attempt < 2; attempt++) {
     const msg = await request({ ...call, messages }, { tools: call.tools, tool_choice: { type: "auto" } });
     addUsage(call.usage, msg.usage);
-    if (msg.stop_reason === "refusal") throw new Error(`${call.label}: the model declined this request`);
+    if (msg.stop_reason === "refusal") throw new RefusalError(`${call.label}: the model declined this request`);
 
     const toolUses = msg.content.filter((b): b is Anthropic.ToolUseBlock => b.type === "tool_use");
     const target = toolUses.find((b) => b.name === call.toolName);

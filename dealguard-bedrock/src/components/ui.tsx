@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { SEVERITY } from "@/lib/format";
 import type { Severity } from "@/lib/types";
+import { useLang } from "./lang";
 
 export function cx(...c: (string | false | null | undefined)[]) {
   return c.filter(Boolean).join(" ");
@@ -13,6 +14,7 @@ export function cx(...c: (string | false | null | undefined)[]) {
 const SEVERITY_ICON = { critical: AlertOctagon, high: AlertTriangle, medium: CircleAlert, low: Info } as const;
 
 export function SeverityBadge({ severity, compact }: { severity: Severity; compact?: boolean }) {
+  const { t } = useLang();
   const s = SEVERITY[severity];
   const Icon = SEVERITY_ICON[severity];
   return (
@@ -21,8 +23,8 @@ export function SeverityBadge({ severity, compact }: { severity: Severity; compa
       style={{ background: s.soft, color: s.text }}
     >
       <Icon size={13} strokeWidth={2.25} style={{ color: s.color }} aria-hidden />
-      {compact ? null : s.label}
-      {compact ? <span className="sr-only">{s.label}</span> : null}
+      {compact ? null : t(s.label)}
+      {compact ? <span className="sr-only">{t(s.label)}</span> : null}
     </span>
   );
 }
@@ -63,12 +65,13 @@ export function Button({ variant = "secondary", size = "md", className, ...props
 
 /** Clickable evidence reference: F07 (fact), G02 (gap) or PAY-2 (finding). */
 export function RefChip({ id, label, onOpen }: { id: string; label?: string; onOpen: (id: string) => void }) {
+  const { t } = useLang();
   return (
     <button
       type="button"
       onClick={() => onOpen(id)}
       className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-2 px-1.5 py-px align-baseline font-mono text-[11.5px] font-medium text-brand hover:border-brand hover:bg-brand-soft"
-      title={label ? `${id} · ${label}` : `View source for ${id}`}
+      title={label ? `${id} · ${label}` : t("View source for {id}", { id })}
     >
       {id}
       {label ? <span className="max-w-40 truncate font-sans font-normal text-ink-2">{label}</span> : null}

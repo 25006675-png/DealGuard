@@ -3,10 +3,12 @@
 import { useMemo, useState } from "react";
 import { rm, rmCompact } from "@/lib/format";
 import type { FundingExposure } from "@/lib/types";
+import { useLang } from "./lang";
 
 /* ---------------- Funding: net cash position over time ---------------- */
 
 export function FundingChart({ funding, commitment }: { funding: FundingExposure; commitment: number }) {
+  const { t } = useLang();
   const [hoverWeek, setHoverWeek] = useState<number | null>(null);
   const W = 1000;
   const H = 360;
@@ -46,19 +48,19 @@ export function FundingChart({ funding, commitment }: { funding: FundingExposure
           <svg width="22" height="8" aria-hidden>
             <line x1="0" y1="4" x2="22" y2="4" stroke="var(--series-1)" strokeWidth="2" />
           </svg>
-          Paid on contract terms
+          {t("Paid on contract terms")}
         </span>
         <span className="flex items-center gap-2">
           <svg width="22" height="8" aria-hidden>
             <line x1="0" y1="4" x2="22" y2="4" stroke="var(--series-2)" strokeWidth="2" strokeDasharray="5 3" />
           </svg>
-          Paid 30 days late
+          {t("Paid 30 days late")}
         </span>
         <span className="flex items-center gap-2">
           <svg width="22" height="8" aria-hidden>
             <line x1="0" y1="4" x2="22" y2="4" stroke="var(--ink-3)" strokeWidth="1" strokeDasharray="2 3" />
           </svg>
-          Your funding ({rmCompact(commitment)})
+          {t("Your funding")} ({rmCompact(commitment)})
         </span>
       </div>
       <svg
@@ -79,7 +81,7 @@ export function FundingChart({ funding, commitment }: { funding: FundingExposure
         ))}
         {Array.from({ length: Math.floor(xMax / 4) + 1 }, (_, i) => i * 4).map((w) => (
           <text key={w} x={x(w)} y={H - 10} textAnchor="middle" className="fill-[var(--ink-3)] text-[11px] tabular">
-            {w === 0 ? "Wk 0" : w}
+            {w === 0 ? t("Wk 0") : w}
           </text>
         ))}
         <line x1={pad.l} x2={W - pad.r} y1={y(-commitment)} y2={y(-commitment)} stroke="var(--ink-3)" strokeDasharray="2 3" />
@@ -97,22 +99,22 @@ export function FundingChart({ funding, commitment }: { funding: FundingExposure
           <g>
             <circle cx={x(peak.week)} cy={y(peak.net)} r={5} fill="var(--series-1)" stroke="var(--surface)" strokeWidth={2} />
             <text x={x(peak.week)} y={y(peak.net) + 20} textAnchor="middle" className="fill-[var(--ink)] text-[12px] font-medium">
-              Peak need {rmCompact(funding.peakNeed)}
+              {t("Peak need")} {rmCompact(funding.peakNeed)}
             </text>
           </g>
         ) : null}
         {last ? (
           <>
             <text x={W - pad.r + 8} y={y(last.net) + 4} className="fill-[var(--ink-2)] text-[11px]">
-              On terms
+              {t("On terms")}
             </text>
             <text x={W - pad.r + 8} y={y(last.netLate) + (Math.abs(y(last.netLate) - y(last.net)) < 14 ? 16 : 4)} className="fill-[var(--ink-2)] text-[11px]">
-              30 days late
+              {t("30 days late")}
             </text>
           </>
         ) : null}
         <text x={W - pad.r + 8} y={y(-commitment) + 4} className="fill-[var(--ink-3)] text-[11px]">
-          Your funding
+          {t("Your funding")}
         </text>
         {hovered ? (
           <g pointerEvents="none">
@@ -125,14 +127,22 @@ export function FundingChart({ funding, commitment }: { funding: FundingExposure
       <div className="mt-2 min-h-[40px] rounded-lg bg-surface-2 px-3 py-2 text-[13px] tabular text-ink-2" aria-live="polite">
         {hovered ? (
           <span className="flex flex-wrap gap-x-5 gap-y-1">
-            <span className="font-medium text-ink">Week {hovered.week}</span>
-            <span>Spent {rm(hovered.cost)}</span>
-            <span>Received {rm(hovered.received)}</span>
-            <span style={{ color: "var(--ink)" }}>Position {rm(hovered.net)}</span>
-            <span>If late {rm(hovered.netLate)}</span>
+            <span className="font-medium text-ink">{t("Week {n}", { n: hovered.week })}</span>
+            <span>
+              {t("Spent")} {rm(hovered.cost)}
+            </span>
+            <span>
+              {t("Received")} {rm(hovered.received)}
+            </span>
+            <span style={{ color: "var(--ink)" }}>
+              {t("Position")} {rm(hovered.net)}
+            </span>
+            <span>
+              {t("If late")} {rm(hovered.netLate)}
+            </span>
           </span>
         ) : (
-          <span>Below zero means you are funding the works yourself. Hover the chart for week-by-week figures.</span>
+          <span>{t("Below zero means you are funding the works yourself. Hover the chart for week-by-week figures.")}</span>
         )}
       </div>
     </div>

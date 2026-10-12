@@ -6,6 +6,7 @@ import { Component, useEffect, useMemo, useRef, useState, type ReactNode, type R
 import * as THREE from "three";
 import { AGENTS } from "@/lib/agents";
 import type { AgentId } from "@/lib/types";
+import { useLang } from "./lang";
 
 export type NodeState = "idle" | "running" | "done" | "failed";
 type NodeId = AgentId | "deal" | "docs" | "advisor";
@@ -230,6 +231,7 @@ export default function PipelineScene({
 }) {
   // Client-only component (loaded with ssr: false), so window is available here.
   const [palette, setPalette] = useState<Palette>(readPalette);
+  const { t } = useLang();
   const [reduced, setReduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
   useEffect(() => {
@@ -256,7 +258,7 @@ export default function PipelineScene({
 
   return (
     <div className={`relative ${className ?? ""}`} aria-hidden>
-      <SceneBoundary fallback={<div className="grid h-full place-items-center text-sm text-ink-3">3D view unavailable on this device.</div>}>
+      <SceneBoundary fallback={<div className="grid h-full place-items-center text-sm text-ink-3">{t("3D view unavailable on this device.")}</div>}>
         <Canvas camera={{ position: [0, 10.5, 10.5], fov: 40 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }}>
           <Scene states={states} interactive={interactive} reduced={reduced} palette={palette} labels={labels} />
         </Canvas>
@@ -277,7 +279,7 @@ export default function PipelineScene({
                   color: state === "idle" ? "var(--ink-3)" : "var(--ink)",
                 }}
               >
-                {n.label}
+                {t(n.label)}
                 {state === "failed" ? " ⚠" : ""}
               </div>
             );

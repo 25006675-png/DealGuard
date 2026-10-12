@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { AGENT_BY_ID } from "@/lib/agents";
 import { rm } from "@/lib/format";
 import type { Analysis, Fact, Finding, SourceRef } from "@/lib/types";
+import { useLang } from "./lang";
 import { RefChip, SeverityBadge, Sheet } from "./ui";
 
 interface EvidenceApi {
@@ -29,6 +30,7 @@ const EvidenceContext = createContext<EvidenceApi>({ open: () => {}, factById: (
 export const useEvidence = () => useContext(EvidenceContext);
 
 export function EvidenceProvider({ analysis, files, children }: { analysis: Analysis; files: File[]; children: ReactNode }) {
+  const { t } = useLang();
   const [selected, setSelected] = useState<string | null>(null);
   const fileUrls = useMemo(() => Object.fromEntries(files.map((f) => [f.name, objectUrlFor(f)])), [files]);
 
@@ -54,7 +56,7 @@ export function EvidenceProvider({ analysis, files, children }: { analysis: Anal
         title={
           <span className="flex items-center gap-2">
             <span className="font-mono text-[13px] text-brand">{selected}</span>
-            <span className="truncate">{finding ? "Finding" : gap ? "Not found in documents" : "Evidence"}</span>
+            <span className="truncate">{finding ? t("Finding") : gap ? t("Not found in documents") : t("Evidence")}</span>
           </span>
         }
       >
@@ -65,31 +67,32 @@ export function EvidenceProvider({ analysis, files, children }: { analysis: Anal
             <p className="text-lg leading-snug">{gap.statement}</p>
             <p className="flex items-start gap-2 rounded-lg bg-sunken p-3 text-sm text-ink-2">
               <SearchX size={16} className="mt-0.5 shrink-0" aria-hidden />
-              DealGuard looked for this term and couldn&apos;t find it, so there&apos;s no clause to quote. Ask the main contractor to confirm it in writing.
+              {t("DealGuard looked for this term and couldn't find it, so there's no clause to quote. Ask the main contractor to confirm it in writing.")}
             </p>
           </div>
         ) : null}
-        {selected && !fact && !finding && !gap ? <p className="p-5 text-sm text-ink-3">No record found for {selected}.</p> : null}
+        {selected && !fact && !finding && !gap ? <p className="p-5 text-sm text-ink-3">{t("No record found for {id}.", { id: selected })}</p> : null}
       </Sheet>
     </EvidenceContext.Provider>
   );
 }
 
 function FactView({ fact, usedBy, fileUrls, onOpen }: { fact: Fact; usedBy: Finding[]; fileUrls: Record<string, string>; onOpen: (id: string) => void }) {
+  const { t } = useLang();
   return (
     <div className="space-y-5 p-5">
       <div>
-        <p className="text-[13px] font-medium capitalize text-ink-3">{fact.category}</p>
+        <p className="text-[13px] font-medium capitalize text-ink-3">{t(fact.category)}</p>
         <p className="mt-1 text-lg leading-snug">{fact.statement}</p>
       </div>
       {fact.sources.length ? (
         fact.sources.map((s, i) => <SourceBlock key={i} source={s} url={fileUrls[s.docName]} showPage={i === 0} />)
       ) : (
-        <p className="rounded-lg bg-sunken p-3 text-sm text-ink-2">No citation was returned for this fact, so treat it as unverified.</p>
+        <p className="rounded-lg bg-sunken p-3 text-sm text-ink-2">{t("No citation was returned for this fact, so treat it as unverified.")}</p>
       )}
       {usedBy.length ? (
         <div>
-          <p className="mb-2 text-[13px] font-medium text-ink-3">Used as evidence in</p>
+          <p className="mb-2 text-[13px] font-medium text-ink-3">{t("Used as evidence in")}</p>
           <ul className="space-y-1.5">
             {usedBy.map((f) => (
               <li key={f.id}>
@@ -108,6 +111,7 @@ function FactView({ fact, usedBy, fileUrls, onOpen }: { fact: Fact; usedBy: Find
 }
 
 function SourceBlock({ source, url, showPage }: { source: SourceRef; url?: string; showPage: boolean }) {
+  const { t } = useLang();
   const isPdf = source.docName.toLowerCase().endsWith(".pdf");
   const pageUrl = url && isPdf ? `${url}#page=${source.page ?? 1}` : url;
   return (
@@ -125,7 +129,7 @@ function SourceBlock({ source, url, showPage }: { source: SourceRef; url?: strin
         </span>
         {pageUrl ? (
           <a href={pageUrl} target="_blank" rel="noreferrer" className="flex shrink-0 items-center gap-1 font-medium text-brand hover:underline">
-            Open document <ArrowUpRight size={14} aria-hidden />
+            {t("Open document")} <ArrowUpRight size={14} aria-hidden />
           </a>
         ) : null}
       </div>
@@ -142,34 +146,37 @@ function SourceBlock({ source, url, showPage }: { source: SourceRef; url?: strin
 }
 
 function FindingView({ finding, facts, onOpen }: { finding: Finding; facts: Map<string, Fact>; onOpen: (id: string) => void }) {
+  const { t } = useLang();
   return (
     <div className="space-y-5 p-5">
       <div>
         <div className="flex flex-wrap items-center gap-2 text-[13px] text-ink-3">
           <SeverityBadge severity={finding.severity} />
-          <span>{AGENT_BY_ID[finding.agent].label}</span>
+          <span>{t(AGENT_BY_ID[finding.agent].label)}</span>
         </div>
         <h2 className="mt-2 text-xl font-semibold leading-snug">{finding.title}</h2>
       </div>
       <dl className="space-y-4 text-[15px] leading-relaxed">
         <div>
-          <dt className="text-[13px] font-medium text-ink-3">What the contract says</dt>
+          <dt className="text-[13px] font-medium text-ink-3">{t("What the contract says")}</dt>
           <dd className="mt-1">{finding.contract_says}</dd>
         </div>
         <div>
-          <dt className="text-[13px] font-medium text-ink-3">Why it matters</dt>
+          <dt className="text-[13px] font-medium text-ink-3">{t("Why it matters")}</dt>
           <dd className="mt-1">{finding.why_it_matters}</dd>
         </div>
         <div className="rounded-lg bg-brand-soft p-3">
-          <dt className="text-[13px] font-medium text-brand">What to ask for</dt>
+          <dt className="text-[13px] font-medium text-brand">{t("What to ask for")}</dt>
           <dd className="mt-1">{finding.recommendation}</dd>
         </div>
       </dl>
       <div className="flex flex-wrap gap-x-6 gap-y-1 text-[13px] text-ink-2">
-        {finding.amount_at_risk_rm ? <span>At risk ≈ {rm(finding.amount_at_risk_rm)}</span> : null}
+        {finding.amount_at_risk_rm ? <span>
+            {t("At risk")} ≈ {rm(finding.amount_at_risk_rm)}
+          </span> : null}
       </div>
       <div>
-        <p className="mb-2 text-[13px] font-medium text-ink-3">Evidence</p>
+        <p className="mb-2 text-[13px] font-medium text-ink-3">{t("Evidence")}</p>
         {finding.fact_ids.length ? (
           <ul className="space-y-2">
             {finding.fact_ids.map((id) => {
@@ -190,7 +197,7 @@ function FindingView({ finding, facts, onOpen }: { finding: Finding; facts: Map<
             })}
           </ul>
         ) : (
-          <p className="text-sm text-ink-3">This finding is about something missing from the documents, so there is no clause to quote.</p>
+          <p className="text-sm text-ink-3">{t("This finding is about something missing from the documents, so there is no clause to quote.")}</p>
         )}
       </div>
     </div>

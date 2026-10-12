@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { GROUPS, PROVISIONS } from "@/lib/provisions";
 import type { Analysis, Fact, ProvisionRecord } from "@/lib/types";
 import { useEvidence } from "../evidence";
+import { useLang } from "../lang";
 import { Card, cx, RefChip } from "../ui";
 import { GuidePending } from "./ActionPlan";
 import { useGuides } from "./guides";
@@ -17,6 +18,7 @@ const STATUS_LABEL = { present: "In the documents", missing: "Not in the documen
 
 export function Breakdown({ analysis, selected, onSelect }: { analysis: Analysis; selected: string; onSelect: (id: string) => void }) {
   const { open, factById } = useEvidence();
+  const { t } = useLang();
   const [filter, setFilter] = useState<Filter>("all");
   const [direction, setDirection] = useState(1);
 
@@ -78,7 +80,7 @@ export function Breakdown({ analysis, selected, onSelect }: { analysis: Analysis
               onClick={() => setFilter(id)}
               className={cx("flex-1 whitespace-nowrap rounded-md px-1.5 py-1.5 text-[12.5px] font-medium", filter === id ? "bg-surface text-ink shadow-sm" : "text-ink-3 hover:text-ink-2")}
             >
-              {label} <span className="tabular text-ink-3">{counts[id]}</span>
+              {t(label)} <span className="tabular text-ink-3">{counts[id]}</span>
             </button>
           ))}
         </div>
@@ -92,13 +94,13 @@ export function Breakdown({ analysis, selected, onSelect }: { analysis: Analysis
           {GROUPS.map((g) => {
             const items = visible.filter((d) => d.group === g.id);
             return items.length ? (
-              <optgroup key={g.id} label={g.label}>
+              <optgroup key={g.id} label={t(g.label)}>
                 {items.map((d) => {
                   const r = records.get(d.id)!;
                   return (
                     <option key={d.id} value={d.id}>
-                      {d.label}
-                      {r.grade === "deal_breaker" ? " · deal-breaker" : r.grade === "unfavourable" ? " · negotiate" : ""}
+                      {t(d.label)}
+                      {r.grade === "deal_breaker" ? ` · ${t("deal-breaker")}` : r.grade === "unfavourable" ? ` · ${t("negotiate")}` : ""}
                     </option>
                   );
                 })}
@@ -112,7 +114,7 @@ export function Breakdown({ analysis, selected, onSelect }: { analysis: Analysis
             if (!items.length) return null;
             return (
               <div key={g.id} className="mb-3">
-                <p className="px-2 pb-1 text-[11.5px] font-medium uppercase tracking-wide text-ink-3">{g.label}</p>
+                <p className="px-2 pb-1 text-[11.5px] font-medium uppercase tracking-wide text-ink-3">{t(g.label)}</p>
                 {items.map((d) => {
                   const r = records.get(d.id)!;
                   const active = d.id === current;
@@ -133,14 +135,14 @@ export function Breakdown({ analysis, selected, onSelect }: { analysis: Analysis
                       <span className="relative flex w-4 justify-center">
                         <ProvisionMark p={r} />
                       </span>
-                      <span className="relative min-w-0 flex-1 truncate">{d.label}</span>
+                      <span className="relative min-w-0 flex-1 truncate">{t(d.label)}</span>
                     </button>
                   );
                 })}
               </div>
             );
           })}
-          {!visible.length ? <p className="px-2 text-sm text-ink-3">Nothing in this filter.</p> : null}
+          {!visible.length ? <p className="px-2 text-sm text-ink-3">{t("Nothing in this filter.")}</p> : null}
         </nav>
       </aside>
 
@@ -148,10 +150,10 @@ export function Breakdown({ analysis, selected, onSelect }: { analysis: Analysis
       <Card className="min-w-0 overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-2.5 text-[12.5px] text-ink-3">
           <span>
-            {GROUPS.find((g) => g.id === def.group)?.label} · <span className="tabular">{Math.max(index, 0) + 1} / {visible.length}</span>
+            {t(GROUPS.find((g) => g.id === def.group)?.label ?? "")} · <span className="tabular">{Math.max(index, 0) + 1} / {visible.length}</span>
           </span>
           <span className="flex items-center gap-1">
-            <span className="mr-2 hidden sm:inline">Use ← → keys</span>
+            <span className="mr-2 hidden sm:inline">{t("Use ← → keys")}</span>
             <button onClick={() => go(-1)} className="rounded-md border border-line p-1.5 text-ink-2 hover:bg-sunken" aria-label="Previous provision">
               <ArrowLeft size={15} />
             </button>
@@ -194,6 +196,7 @@ function ProvisionDetail({
   analysis: Analysis;
   onOpen: (id: string) => void;
 }) {
+  const { t } = useLang();
   const [copied, setCopied] = useState(false);
   const checks = analysis.playbook.filter((c) => c.provisionId === def.id);
   return (
@@ -201,20 +204,20 @@ function ProvisionDetail({
       <div>
         <div className="flex flex-wrap items-center gap-2">
           <GradeBadge grade={rec.grade} />
-          <span className="rounded-full bg-sunken px-2 py-0.5 text-xs text-ink-2">{STATUS_LABEL[rec.status]}</span>
+          <span className="rounded-full bg-sunken px-2 py-0.5 text-xs text-ink-2">{t(STATUS_LABEL[rec.status])}</span>
         </div>
-        <p className="mt-2.5 text-[13px] font-medium text-ink-3">{def.label}</p>
+        <p className="mt-2.5 text-[13px] font-medium text-ink-3">{t(def.label)}</p>
         <h2 className="mt-0.5 text-[24px] font-semibold leading-tight tracking-tight">{rec.headline}</h2>
         <p className="mt-3 text-[16.5px] leading-relaxed">{rec.summary}</p>
         {rec.grade !== "normal" ? (
           <div className="mt-4 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2">
             <div className="bg-surface px-4 py-3">
-              <p className="text-[11.5px] font-medium uppercase tracking-wide text-ink-3">Normal</p>
+              <p className="text-[11.5px] font-medium uppercase tracking-wide text-ink-3">{t("Normal")}</p>
               <p className="mt-0.5 text-[14.5px]">{rec.normal}</p>
             </div>
             <div className="px-4 py-3" style={{ background: GRADE_STYLE[rec.grade].soft }}>
               <p className="text-[11.5px] font-medium uppercase tracking-wide" style={{ color: GRADE_STYLE[rec.grade].text }}>
-                Yours
+                {t("Yours")}
               </p>
               <p className="mt-0.5 text-[14.5px] font-medium">{rec.yours}</p>
             </div>
@@ -234,7 +237,7 @@ function ProvisionDetail({
       ) : null}
 
       <section>
-        <h3 className="text-[13px] font-medium text-ink-3">What you must do</h3>
+        <h3 className="text-[13px] font-medium text-ink-3">{t("What you must do")}</h3>
         {rec.obligations.length ? (
           <ol className="mt-2 space-y-2">
             {rec.obligations.map((o, i) => (
@@ -248,14 +251,14 @@ function ProvisionDetail({
                         <Clock size={12} aria-hidden /> {o.deadline}
                       </span>
                     ) : null}
-                    <span>{PHASES.find((p) => p.id === o.phase)?.label}</span>
+                    <span>{t(PHASES.find((p) => p.id === o.phase)?.label ?? "")}</span>
                   </p>
                 </div>
               </li>
             ))}
           </ol>
         ) : (
-          <p className="mt-2 text-[14px] text-ink-3">No specific action required under this provision.</p>
+          <p className="mt-2 text-[14px] text-ink-3">{t("No specific action required under this provision.")}</p>
         )}
       </section>
 
@@ -264,7 +267,7 @@ function ProvisionDetail({
       {rec.negotiation ? (
         <section className="rounded-xl bg-brand-soft p-4">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-[13px] font-medium text-brand">What to ask for</h3>
+            <h3 className="text-[13px] font-medium text-brand">{t("What to ask for")}</h3>
             <button
               onClick={() => {
                 navigator.clipboard?.writeText(rec.negotiation?.ask ?? "").then(() => {
@@ -275,19 +278,19 @@ function ProvisionDetail({
               className="inline-flex items-center gap-1 text-[12px] font-medium text-brand hover:underline"
             >
               {copied ? <Check size={13} aria-hidden /> : <Copy size={13} aria-hidden />}
-              {copied ? "Copied" : "Copy"}
+              {copied ? t("Copied") : t("Copy")}
             </button>
           </div>
           <p className="mt-1 text-[15px] leading-relaxed">{rec.negotiation.ask}</p>
           <p className="mt-2 text-[13.5px] text-ink-2">
-            <span className="font-medium text-ink">You can accept:</span> {rec.negotiation.minimum}
+            <span className="font-medium text-ink">{t("You can accept:")}</span> {rec.negotiation.minimum}
           </p>
         </section>
       ) : null}
 
       {rec.fact_ids.length ? (
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[12px] text-ink-3">Evidence</span>
+          <span className="text-[12px] text-ink-3">{t("Evidence")}</span>
           {rec.fact_ids.map((id) => (
             <RefChip key={id} id={id} onOpen={onOpen} />
           ))}
@@ -298,6 +301,7 @@ function ProvisionDetail({
 }
 
 function SourcePanel({ factIds, factById, onOpen }: { factIds: string[]; factById: (id: string) => Fact | undefined; onOpen: (id: string) => void }) {
+  const { t } = useLang();
   const facts = factIds.map(factById).filter((f): f is Fact => Boolean(f));
   const [active, setActive] = useState(0);
   const fact = facts[active];
@@ -307,7 +311,7 @@ function SourcePanel({ factIds, factById, onOpen }: { factIds: string[]; factByI
     <Card className="overflow-hidden xl:sticky xl:top-20">
       <div className="flex items-center gap-2 border-b border-line px-4 py-2.5 text-[12.5px] text-ink-2">
         <FileText size={14} aria-hidden />
-        <span className="min-w-0 flex-1 truncate">{src ? `${src.docName}${src.page ? ` · p.${src.page}` : ""}` : "Source"}</span>
+        <span className="min-w-0 flex-1 truncate">{src ? `${src.docName}${src.page ? ` · p.${src.page}` : ""}` : t("Source")}</span>
       </div>
       {facts.length > 1 ? (
         <div className="flex gap-1 overflow-x-auto border-b border-line px-3 py-2">
@@ -330,12 +334,12 @@ function SourcePanel({ factIds, factById, onOpen }: { factIds: string[]; factByI
             {src.after ? <span className="text-ink-3">{src.after.slice(0, 160)}…</span> : null}
           </blockquote>
           <button onClick={() => onOpen(fact.id)} className="mt-4 text-[12.5px] font-medium text-brand hover:underline">
-            Open full evidence for {fact.id}
+            {t("Open full evidence for {id}", { id: fact.id })}
           </button>
         </div>
       ) : (
         <p className="px-5 py-6 text-[13.5px] leading-relaxed text-ink-3">
-          No clause to quote. This provision is about something the documents don&apos;t say, so ask the main contractor to confirm it in writing.
+          {t("No clause to quote. This provision is about something the documents don't say, so ask the main contractor to confirm it in writing.")}
         </p>
       )}
     </Card>
@@ -344,10 +348,11 @@ function SourcePanel({ factIds, factById, onOpen }: { factIds: string[]; factByI
 
 function GuideRequest({ id }: { id: string }) {
   const { state, ensure } = useGuides();
+  const { t } = useLang();
   if (!state[id]) {
     return (
       <button onClick={() => ensure(id)} className="w-full rounded-xl border border-dashed border-line-strong px-4 py-3 text-left text-[14px] font-medium text-brand hover:border-brand hover:bg-brand-soft">
-        Get the negotiation guide and proposed wording
+        {t("Get the negotiation guide and proposed wording")}
       </button>
     );
   }

@@ -1,5 +1,6 @@
+import { tr } from "./i18n";
 import { PROVISION_BY_ID } from "./provisions";
-import type { Analysis, ProvisionRecord } from "./types";
+import type { Analysis, Lang, ProvisionRecord } from "./types";
 
 // The reply letter and schedule of amendments are built from the changes the
 // user ticked, in code, so they're instant and match the selection exactly.
@@ -31,48 +32,52 @@ export function changeRows(analysis: Analysis, records: ProvisionRecord[]): Chan
 
 // Asks are written to the subcontractor ("not caused by you"); the letter is
 // written by the subcontractor, so switch the point of view.
-const asSubcontractor = (text: string) => text.replace(/\byour\b/gi, "our").replace(/\byou\b/gi, "us");
+const asSubcontractor = (text: string, lang: Lang) =>
+  lang === "ms" ? text.replace(/\banda\b/gi, "kami") : text.replace(/\byour\b/gi, "our").replace(/\byou\b/gi, "us");
 
-export function letterMarkdown(analysis: Analysis, records: ProvisionRecord[]): string {
+export function letterMarkdown(analysis: Analysis, records: ProvisionRecord[], lang: Lang = "en"): string {
+  const L = (text: string, vars?: Record<string, string | number>) => tr(lang, text, vars);
   const d = analysis.deal;
   const rows = changeRows(analysis, records);
   const asks = records.filter((r) => r.negotiation);
   const missing = (analysis.decision?.missing_evidence ?? []).filter((m) => m.timing === "before_signing").map((m) => m.item);
   const value = d.contractValue ? ` (RM ${d.contractValue.toLocaleString("en-MY")})` : "";
   const lines = [
-    "**[Your company name]**",
-    "[Address]",
+    `**${L("[Your company name]")}**`,
+    L("[Address]"),
     "",
-    "[Date]",
+    L("[Date]"),
     "",
-    "[Name, designation]",
-    "[Main contractor]",
+    L("[Name, designation]"),
+    L("[Main contractor]"),
     "",
-    `**Re: Letter of Award: ${d.packageType || "[package]"}**`,
+    `**${L("Re: Letter of Award: {package}", { package: d.packageType || L("[package]") })}**`,
     "",
-    "Dear Sir/Madam,",
+    L("Dear Sir/Madam,"),
     "",
-    `Thank you for your Letter of Award for ${d.packageType || "the package"}${value}. We are keen to carry out the works.`,
+    L("Thank you for your Letter of Award for {package}{value}. We are keen to carry out the works.", { package: d.packageType || L("the package"), value }),
     "",
-    `Our acceptance is subject to the ${rows.length ? "amendments set out in the attached Schedule of Amendments" : "points below"}, which we summarise in order of importance:`,
+    rows.length
+      ? L("Our acceptance is subject to the amendments set out in the attached Schedule of Amendments, which we summarise in order of importance:")
+      : L("Our acceptance is subject to the points below, which we summarise in order of importance:"),
     "",
     ...asks.map((r, i) => {
       const ref = r.change?.clause_ref ? ` (${r.change.clause_ref})` : "";
-      return `${i + 1}. **${PROVISION_BY_ID[r.provision_id]?.label ?? r.headline}${ref}.** ${asSubcontractor(r.negotiation!.ask)}`;
+      return `${i + 1}. **${L(PROVISION_BY_ID[r.provision_id]?.label ?? r.headline)}${ref}.** ${asSubcontractor(r.negotiation!.ask, lang)}`;
     }),
     "",
   ];
   if (missing.length) {
-    lines.push("We would also be grateful for copies of the following before we accept:", "", ...missing.map((m) => `- ${m}`), "");
+    lines.push(L("We would also be grateful for copies of the following before we accept:"), "", ...missing.map((m) => `- ${m}`), "");
   }
   lines.push(
-    "Given the above, we ask that the acceptance period be extended so these points can be agreed. We would welcome a meeting this week.",
+    L("Given the above, we ask that the acceptance period be extended so these points can be agreed. We would welcome a meeting this week."),
     "",
-    "Yours faithfully,",
+    L("Yours faithfully,"),
     "",
-    "[Name]",
-    "[Designation]",
-    "for and on behalf of **[Your company name]**",
+    L("[Name]"),
+    L("[Designation]"),
+    `${L("for and on behalf of")} **${L("[Your company name]")}**`,
   );
   return lines.join("\n");
 }
@@ -87,7 +92,8 @@ function save(blob: Blob, filename: string) {
 }
 
 /** Schedule of amendments as a Word file: clause, current wording, proposed wording, reason. */
-export async function downloadAmendmentsDocx(analysis: Analysis, records: ProvisionRecord[]) {
+export async function downloadAmendmentsDocx(analysis: Analysis, records: ProvisionRecord[], lang: Lang = "en") {
+  const L = (text: string) => tr(lang, text);
   const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, HeadingLevel, ShadingType } = await import("docx");
   const rows = changeRows(analysis, records);
   const cell = (text: string, opts: { bold?: boolean; strike?: boolean; header?: boolean } = {}) =>
@@ -99,23 +105,23 @@ export async function downloadAmendmentsDocx(analysis: Analysis, records: Provis
     sections: [
       {
         children: [
-          new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Schedule of Amendments")] }),
-          new Paragraph({ children: [new TextRun({ text: `${analysis.deal.packageType || "Subcontract package"}. Proposed by the Subcontractor for discussion.`, size: 20 })] }),
+          new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(L("Schedule of Amendments"))] }),
+          new Paragraph({ children: [new TextRun({ text: `${analysis.deal.packageType || L("Subcontract package")}. ${L("Proposed by the Subcontractor for discussion.")}`, size: 20 })] }),
           new Paragraph({ children: [] }),
           new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
             rows: [
-              new TableRow({ tableHeader: true, children: ["No.", "Clause", "Current wording", "Proposed wording", "Reason"].map((h) => cell(h, { header: true })) }),
+              new TableRow({ tableHeader: true, children: ["No.", "Clause", "Current wording", "Proposed wording", "Reason"].map((h) => cell(L(h), { header: true })) }),
               ...rows.map(
                 (r) =>
                   new TableRow({
-                    children: [cell(String(r.no)), cell(`${r.clause}: ${r.title}`, { bold: true }), cell(r.original ?? "(not addressed)", { strike: Boolean(r.original) }), cell(r.proposed), cell(r.reason)],
+                    children: [cell(String(r.no)), cell(`${L(r.clause)}: ${L(r.title)}`, { bold: true }), cell(r.original ?? L("(not addressed)"), { strike: Boolean(r.original) }), cell(r.proposed), cell(r.reason)],
                   }),
               ),
             ],
           }),
           new Paragraph({ children: [] }),
-          new Paragraph({ children: [new TextRun({ text: "Proposed wording prepared with DealGuard MY for discussion. Commercial guidance only, not legal advice; have a lawyer review before signing.", italics: true, size: 18 })] }),
+          new Paragraph({ children: [new TextRun({ text: L("Proposed wording prepared with DealGuard MY for discussion. Commercial guidance only, not legal advice; have a lawyer review before signing."), italics: true, size: 18 })] }),
         ],
       },
     ],

@@ -1,10 +1,11 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { bedrockConfig, callTool, emptyUsage } from "@/lib/bedrock";
+import { localizeDemo } from "@/lib/demo-ms";
 import { demoGuide } from "@/lib/demo-provisions";
 import { friendlyError } from "@/lib/errors";
 import { describeDeal } from "@/lib/pipeline";
 import { RED_LINE_FIELDS, sanitizeRedLines } from "@/lib/playbook";
-import { GUIDE_SYSTEM } from "@/lib/prompts";
+import { GUIDE_SYSTEM, languageRule } from "@/lib/prompts";
 import { PROVISION_BY_ID } from "@/lib/provisions";
 import { guideSchema, toInputSchema } from "@/lib/schemas";
 import type { DealInput, Fact, ProvisionRecord } from "@/lib/types";
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
   if (cfg.demo) {
     await new Promise((r) => setTimeout(r, 900));
     const guide = demoGuide(provision.provision_id);
-    return guide ? Response.json(guide) : Response.json({ error: "No guide for this point in the sample." }, { status: 404 });
+    return guide ? Response.json(localizeDemo(guide, deal.lang)) : Response.json({ error: "No guide for this point in the sample." }, { status: 404 });
   }
 
   const red = sanitizeRedLines(deal.redLines);
@@ -63,7 +64,7 @@ This contract: ${provision.yours}
 ${evidence || "No quoted evidence: this term is missing from the documents."}
 </evidence>
 
-Write the negotiation guide and the replacement wording for this point. replaces_fact_id must be one of the evidence IDs above whose quote the new wording replaces, or null if you're proposing a new clause. Report by calling ${GUIDE_TOOL.name} once.`;
+Write the negotiation guide and the replacement wording for this point. replaces_fact_id must be one of the evidence IDs above whose quote the new wording replaces, or null if you're proposing a new clause. Report by calling ${GUIDE_TOOL.name} once.${languageRule(deal.lang)}${deal.lang === "ms" ? " The one exception is proposed_wording: write it in the language of the contract it will be inserted into." : ""}`;
 
   try {
     const out = await callTool({

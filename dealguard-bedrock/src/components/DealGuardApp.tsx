@@ -2,16 +2,19 @@
 
 import { Logo } from "./Logo";
 import { MotionConfig } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DEFAULT_RED_LINES, sanitizeRedLines, type RedLines } from "@/lib/playbook";
 import { SAMPLE_DEAL, SAMPLE_FILES } from "@/lib/sample";
+import type { PrefillOutput } from "@/lib/schemas";
 import type { Analysis, AgentId, ChatMessage, PipelineEvent } from "@/lib/types";
 import { ChatPanel } from "./ChatPanel";
 import { EvidenceProvider } from "./evidence";
+import { LangProvider, useLang } from "./lang";
 import type { NodeState } from "./PipelineScene";
 import { ResultsView } from "./ResultsView";
 import { RunView } from "./RunView";
-import { EMPTY_FORM, formToDeal, SetupView, type DealForm } from "./SetupView";
+import { EMPTY_FORM, formToDeal, SetupView, type DealForm, type PrefillState } from "./SetupView";
+import { cx } from "./ui";
 
 interface Health {
   mode: "demo" | "bedrock";
@@ -57,7 +60,29 @@ function loadRedLines(): RedLines {
   }
 }
 
+const fileKey = (list: File[]) => list.map((f) => `${f.name}:${f.size}`).join("|");
+
+// Setup fields the first read of the documents can fill in, with the name shown to the user.
+const PREFILL_FIELDS = {
+  packageType: "trade",
+  contractValue: "value",
+  durationWeeks: "duration",
+  advancePayment: "advance",
+  standardForm: "contract form",
+  projectType: "project type",
+} as const;
+type PrefillField = keyof typeof PREFILL_FIELDS;
+
 export function DealGuardApp() {
+  return (
+    <LangProvider>
+      <App />
+    </LangProvider>
+  );
+}
+
+function App() {
+  const { lang, setLang, t } = useLang();
   const [phase, setPhase] = useState<"setup" | "running" | "results">("setup");
   const [form, setFormState] = useState<DealForm>(() => ({ ...EMPTY_FORM, redLines: loadRedLines() }));
   const [files, setFiles] = useState<File[]>([]);
@@ -69,6 +94,17 @@ export function DealGuardApp() {
   const [loadingSample, setLoadingSample] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [prefill, setPrefill] = useState<PrefillState>({ status: "idle" });
+  // The prefill request finishes later, so it reads the latest form and language from refs.
+  const formRef = useRef(form);
+  const langRef = useRef(lang);
+  const autoFilled = useRef<Partial<Record<PrefillField, string>>>({});
+  const prefilledKey = useRef("");
+
+  useEffect(() => {
+    formRef.current = form;
+    langRef.current = lang;
+  }, [form, lang]);
 
   useEffect(() => {
     fetch("/api/health")
@@ -83,6 +119,7 @@ export function DealGuardApp() {
     let cancelled = false;
     fetchSampleFiles().then((loaded) => {
       if (cancelled) return;
+      prefilledKey.current = fileKey(loaded); // the sample form is already filled in
       setFormState((f) => sampleForm(f.redLines));
       setFiles(loaded);
     });
@@ -90,6 +127,63 @@ export function DealGuardApp() {
       cancelled = true;
     };
   }, []);
+
+  // A quick first read of newly added documents fills in the details they state.
+  // It only touches fields the user hasn't typed in.
+  useEffect(() => {
+    const key = fileKey(files);
+    if (!key || key === prefilledKey.current) return;
+    const ctrl = new AbortController();
+    let finished = false;
+    const timer = setTimeout(async () => {
+      prefilledKey.current = key;
+      setPrefill({ status: "reading" });
+      try {
+        const body = new FormData();
+        files.forEach((f) => body.append("files", f));
+        body.append("lang", langRef.current);
+        const res = await fetch("/api/prefill", { method: "POST", body, signal: ctrl.signal });
+        if (!res.ok) throw new Error("prefill failed");
+        const out = (await res.json()) as PrefillOutput;
+        finished = true;
+        if (out.relevant === false) {
+          setPrefill({ status: "irrelevant", note: out.relevance_note });
+          return;
+        }
+        const whole = (n: number | null) => (n ? String(Math.round(n)) : "");
+        const read: Record<PrefillField, string> = {
+          packageType: out.package_type ?? "",
+          contractValue: whole(out.contract_sum_rm),
+          durationWeeks: whole(out.completion_weeks),
+          advancePayment: whole(out.advance_payment_rm),
+          standardForm: out.standard_form ?? "",
+          projectType: out.project_type ?? "",
+        };
+        const cur = formRef.current;
+        const changes: Partial<Record<PrefillField, string>> = {};
+        for (const k of Object.keys(read) as PrefillField[]) {
+          const untouched = cur[k] === EMPTY_FORM[k] || cur[k] === autoFilled.current[k];
+          if (read[k] && read[k] !== cur[k] && untouched) changes[k] = read[k];
+        }
+        autoFilled.current = { ...autoFilled.current, ...changes };
+        setFormState((f) => ({ ...f, ...changes }) as DealForm);
+        setPrefill({ status: "done", filled: (Object.keys(changes) as PrefillField[]).map((k) => PREFILL_FIELDS[k]) });
+      } catch {
+        // Prefill is a convenience: if it fails the user simply types the details in.
+        if (!ctrl.signal.aborted) {
+          finished = true;
+          setPrefill({ status: "idle" });
+        }
+      }
+    }, 600);
+    return () => {
+      clearTimeout(timer);
+      if (!finished) {
+        ctrl.abort();
+        if (prefilledKey.current === key) prefilledKey.current = "";
+      }
+    };
+  }, [files]);
 
   function setForm(next: DealForm) {
     if (next.redLines !== form.redLines) {
@@ -106,6 +200,8 @@ export function DealGuardApp() {
     setLoadingSample(true);
     try {
       const loaded = await fetchSampleFiles();
+      prefilledKey.current = fileKey(loaded); // the sample form is already filled in
+      setPrefill({ status: "idle" });
       setFormState(sampleForm(form.redLines));
       setFiles(loaded);
       setError(null);
@@ -123,7 +219,7 @@ export function DealGuardApp() {
     window.scrollTo({ top: 0 });
 
     const body = new FormData();
-    body.append("deal", JSON.stringify(formToDeal(form)));
+    body.append("deal", JSON.stringify({ ...formToDeal(form), lang }));
     files.forEach((f) => body.append("files", f));
 
     try {
@@ -155,12 +251,12 @@ export function DealGuardApp() {
           }
         }
       }
-      if (!result) throw new Error("The analysis ended without a result. Please try again.");
+      if (!result) throw new Error(t("The analysis ended without a result. Please try again."));
       setAnalysis(result);
       setPhase("results");
       window.scrollTo({ top: 0 });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setError(e instanceof Error ? e.message : t("Something went wrong."));
       setPhase("setup");
     }
   }
@@ -176,16 +272,32 @@ export function DealGuardApp() {
               <Logo />
               {analysis && phase === "setup" ? (
                 <button onClick={() => setPhase("results")} className="text-[13px] font-medium text-brand hover:underline">
-                  Back to results
+                  {t("Back to results")}
                 </button>
               ) : null}
             </div>
-            {health ? (
-              <span className="flex items-center gap-2 rounded-full border border-line bg-surface px-2.5 py-1 text-[12px] text-ink-2">
-                <span className="size-1.5 rounded-full" style={{ background: demo ? "var(--warning)" : "var(--good)" }} aria-hidden />
-                {demo ? "Demo mode" : `Bedrock · ${health.model.replace(/^anthropic\./, "")} · ${health.region}`}
-              </span>
-            ) : null}
+            <div className="flex items-center gap-2">
+              <div role="group" aria-label={t("Language")} className="flex rounded-full border border-line bg-surface p-0.5 text-[12px]">
+                {(["en", "ms"] as const).map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => setLang(l)}
+                    aria-pressed={lang === l}
+                    title={l === "en" ? "English" : "Bahasa Malaysia"}
+                    className={cx("rounded-full px-2 py-0.5 font-medium transition-colors", lang === l ? "bg-ink text-[var(--bg)]" : "text-ink-3 hover:text-ink")}
+                  >
+                    {l === "en" ? "EN" : "BM"}
+                  </button>
+                ))}
+              </div>
+              {health ? (
+                <span className="flex items-center gap-2 rounded-full border border-line bg-surface px-2.5 py-1 text-[12px] text-ink-2">
+                  <span className="size-1.5 rounded-full" style={{ background: demo ? "var(--warning)" : "var(--good)" }} aria-hidden />
+                  {demo ? t("Demo mode") : `Bedrock · ${health.model.replace(/^anthropic\./, "")} · ${health.region}`}
+                </span>
+              ) : null}
+            </div>
           </div>
         </header>
 
@@ -200,6 +312,7 @@ export function DealGuardApp() {
             loadingSample={loadingSample}
             error={error}
             demo={demo}
+            prefill={prefill}
           />
         ) : null}
         {phase === "running" ? <RunView status={status} details={details} demo={demo} /> : null}
