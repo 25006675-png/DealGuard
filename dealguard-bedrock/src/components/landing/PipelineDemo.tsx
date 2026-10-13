@@ -11,14 +11,14 @@ const PipelineScene = dynamic(() => import("../PipelineScene"), { ssr: false });
 const STAGES: AgentId[][] = [["intake", "facts"], ["payment", "scope", "time", "remedies", "consistency"], ["scoring", "funding"], ["decision"]];
 
 // Frames: each stage runs, then completes; a pause at the end, then it starts again.
-function frame(step: number): { status: Partial<Record<AgentId, NodeState>>; done: boolean } {
+function frame(step: number): Partial<Record<AgentId, NodeState>> {
   const status: Partial<Record<AgentId, NodeState>> = {};
   const stage = Math.floor(step / 2);
   STAGES.forEach((agents, i) => {
     const s: NodeState = i < stage ? "done" : i === stage ? (step % 2 === 0 ? "running" : "done") : "idle";
     agents.forEach((a) => (status[a] = s));
   });
-  return { status, done: stage >= STAGES.length };
+  return status;
 }
 
 export function PipelineDemo() {
@@ -32,10 +32,10 @@ export function PipelineDemo() {
     return () => clearInterval(id);
   }, [inView]);
 
-  const { status, done } = frame(step);
+  const status = frame(step);
   return (
     <div ref={ref} className="paper relative h-[380px] overflow-hidden rounded-2xl border border-line bg-surface sm:h-[440px]">
-      {inView ? <PipelineScene status={status} advisorReady={done} className="h-full w-full" /> : null}
+      {inView ? <PipelineScene status={status} className="h-full w-full" /> : null}
     </div>
   );
 }

@@ -42,7 +42,7 @@ export function RunView({ status, details, demo }: { status: Partial<Record<Agen
         <p className="text-sm tabular text-ink-2">
           {t("{done} of {total} steps", { done, total: AGENTS.length })} · {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
           {" · "}
-          {demo ? t("demo replay") : t("usually 2–4 min")}
+          {demo ? t("demo replay") : t("usually about 1 min")}
         </p>
       </div>
       <div className="mt-2 h-1 overflow-hidden rounded-full bg-sunken">
@@ -54,7 +54,7 @@ export function RunView({ status, details, demo }: { status: Partial<Record<Agen
           <div className="absolute inset-0">
             <PipelineScene status={status} className="h-full w-full" />
           </div>
-          <p className="absolute bottom-3 left-4 text-[12px] text-ink-3">{t("Inputs at the back · decision at the front")}</p>
+          <p className="absolute bottom-3 left-4 text-[12px] text-ink-3">{t("Inputs at the top · decision at the bottom")}</p>
         </Card>
         <Card className="p-2">
           <ol aria-live="polite" className="divide-y divide-line">

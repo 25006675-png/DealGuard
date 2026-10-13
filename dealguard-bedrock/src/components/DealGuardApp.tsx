@@ -4,7 +4,7 @@ import { Logo } from "./Logo";
 import { MotionConfig } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { DEFAULT_RED_LINES, sanitizeRedLines, type RedLines } from "@/lib/playbook";
-import { SAMPLE_DEAL, SAMPLE_FILES } from "@/lib/sample";
+import { SAMPLE_DEAL, SAMPLE_FILES, SAMPLE_PDF_DEAL, SAMPLE_PDF_FILES } from "@/lib/sample";
 import type { PrefillOutput } from "@/lib/schemas";
 import type { Analysis, AgentId, ChatMessage, PipelineEvent } from "@/lib/types";
 import { ChatPanel } from "./ChatPanel";
@@ -20,34 +20,53 @@ interface Health {
   mode: "demo" | "bedrock";
   model: string;
   region: string;
+  choice?: string;
+  choices?: string[]; // empty unless the server allows switching models (testing)
 }
+
+const MODEL_LABEL: Record<string, string> = { sonnet: "Claude Sonnet", haiku: "Claude Haiku", gemini: "Gemini (test)" };
 
 const RED_LINES_KEY = "dealguard.redLines";
 
-function sampleForm(redLines: RedLines): DealForm {
+// A live model gets the six-PDF sample; demo mode keeps the piling sample its replay was built from.
+const sampleDeal = (live: boolean) => (live ? SAMPLE_PDF_DEAL : SAMPLE_DEAL);
+
+function sampleForm(live: boolean, redLines: RedLines): DealForm {
+  const deal = sampleDeal(live);
   return {
-    packageType: SAMPLE_DEAL.packageType,
-    contractValue: String(SAMPLE_DEAL.contractValue),
-    fundingCommitment: String(SAMPLE_DEAL.fundingCommitment),
-    advancePayment: "",
-    durationWeeks: String(SAMPLE_DEAL.durationWeeks),
-    context: SAMPLE_DEAL.context,
-    standardForm: SAMPLE_DEAL.standardForm,
-    projectType: SAMPLE_DEAL.projectType,
-    stage: SAMPLE_DEAL.stage,
-    marginPct: String(SAMPLE_DEAL.marginPct),
-    monthlyOverhead: String(SAMPLE_DEAL.monthlyOverhead),
+    packageType: deal.packageType,
+    contractValue: String(deal.contractValue),
+    fundingCommitment: String(deal.fundingCommitment),
+    advancePayment: deal.advancePayment ? String(deal.advancePayment) : "",
+    durationWeeks: String(deal.durationWeeks),
+    context: deal.context,
+    standardForm: deal.standardForm,
+    projectType: deal.projectType,
+    stage: deal.stage,
+    marginPct: String(deal.marginPct),
+    monthlyOverhead: String(deal.monthlyOverhead),
     redLines,
   };
 }
 
-function fetchSampleFiles() {
+function fetchSampleFiles(live: boolean) {
+  const [folder, names] = live ? ["sample-deal-pdf", SAMPLE_PDF_FILES] : ["sample-deal", SAMPLE_FILES];
   return Promise.all(
-    SAMPLE_FILES.map(async (name) => {
-      const blob = await (await fetch(`/sample-deal/${name}`)).blob();
-      return new File([blob], name, { type: name.endsWith(".csv") ? "text/csv" : "text/plain" });
+    names.map(async (name) => {
+      const blob = await (await fetch(`/${folder}/${name}`)).blob();
+      const type = name.endsWith(".pdf") ? "application/pdf" : name.endsWith(".csv") ? "text/csv" : "text/plain";
+      return new File([blob], name, { type });
     }),
   );
+}
+
+async function serverIsLive() {
+  try {
+    const health = (await (await fetch("/api/health")).json()) as Health;
+    return health.mode !== "demo";
+  } catch {
+    return false;
+  }
 }
 
 // Red lines are a per-device preference; storage can be unavailable, so fall back quietly.
@@ -117,10 +136,10 @@ function App() {
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("sample") !== "1") return;
     let cancelled = false;
-    fetchSampleFiles().then((loaded) => {
+    serverIsLive().then(async (live) => {
+      const loaded = await fetchSampleFiles(live);
       if (cancelled) return;
-      prefilledKey.current = fileKey(loaded); // the sample form is already filled in
-      setFormState((f) => sampleForm(f.redLines));
+      setFormState((f) => sampleForm(live, f.redLines));
       setFiles(loaded);
     });
     return () => {
@@ -167,7 +186,7 @@ function App() {
         }
         autoFilled.current = { ...autoFilled.current, ...changes };
         setFormState((f) => ({ ...f, ...changes }) as DealForm);
-        setPrefill({ status: "done", filled: (Object.keys(changes) as PrefillField[]).map((k) => PREFILL_FIELDS[k]) });
+        setPrefill({ status: "done", filled: (Object.keys(changes) as PrefillField[]).map((k) => PREFILL_FIELDS[k]), missing: out.missing_documents ?? [] });
       } catch {
         // Prefill is a convenience: if it fails the user simply types the details in.
         if (!ctrl.signal.aborted) {
@@ -199,10 +218,10 @@ function App() {
   async function loadSample() {
     setLoadingSample(true);
     try {
-      const loaded = await fetchSampleFiles();
-      prefilledKey.current = fileKey(loaded); // the sample form is already filled in
-      setPrefill({ status: "idle" });
-      setFormState(sampleForm(form.redLines));
+      const live = health ? health.mode !== "demo" : await serverIsLive();
+      const loaded = await fetchSampleFiles(live);
+      // The sample form is already filled in; the first read still runs to check for missing documents.
+      setFormState(sampleForm(live, form.redLines));
       setFiles(loaded);
       setError(null);
     } finally {
@@ -219,7 +238,8 @@ function App() {
     window.scrollTo({ top: 0 });
 
     const body = new FormData();
-    body.append("deal", JSON.stringify({ ...formToDeal(form), lang }));
+    const missingDocuments = prefill.status === "done" ? prefill.missing : undefined;
+    body.append("deal", JSON.stringify({ ...formToDeal(form), lang, missingDocuments }));
     files.forEach((f) => body.append("files", f));
 
     try {
@@ -263,6 +283,15 @@ function App() {
 
   const demo = health?.mode === "demo";
 
+  // Testing switch: the server reads this cookie on every API call.
+  function pickModel(choice: string) {
+    document.cookie = `dg-model=${choice}; path=/; max-age=31536000; samesite=lax`;
+    fetch("/api/health")
+      .then((r) => r.json())
+      .then(setHealth)
+      .catch(() => setHealth(null));
+  }
+
   return (
     <MotionConfig reducedMotion="user">
       <div className="min-h-screen">
@@ -293,8 +322,27 @@ function App() {
               </div>
               {health ? (
                 <span className="flex items-center gap-2 rounded-full border border-line bg-surface px-2.5 py-1 text-[12px] text-ink-2">
-                  <span className="size-1.5 rounded-full" style={{ background: demo ? "var(--warning)" : "var(--good)" }} aria-hidden />
-                  {demo ? t("Demo mode") : `Bedrock · ${health.model.replace(/^anthropic\./, "")} · ${health.region}`}
+                  <span className="size-1.5 rounded-full" style={{ background: demo || health.choice === "gemini" ? "var(--warning)" : "var(--good)" }} aria-hidden />
+                  {demo ? (
+                    t("Demo mode")
+                  ) : health.choices?.length ? (
+                    <select
+                      aria-label={t("Model")}
+                      title={`${health.model} · ${health.region}`}
+                      value={health.choice}
+                      onChange={(e) => pickModel(e.target.value)}
+                      disabled={phase === "running"}
+                      className="cursor-pointer bg-transparent font-medium text-ink outline-none disabled:cursor-not-allowed"
+                    >
+                      {health.choices.map((c) => (
+                        <option key={c} value={c}>
+                          {MODEL_LABEL[c] ?? c}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    `Bedrock · ${health.model.replace(/^anthropic\./, "")} · ${health.region}`
+                  )}
                 </span>
               ) : null}
             </div>

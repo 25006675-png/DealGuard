@@ -13,10 +13,16 @@ const DEFAULTS = {
 };
 const LATE_DAYS = 30;
 
+// DHSS expenditure curve: y = x + Cx² − Cx − (6x³ − 9x² + 3x)/K (Hudson 1978, as quoted in Skitmore 1992).
+// Hudson's constants by contract value aren't openly published; C = 0, K = 3 is a mid-range, symmetric shape.
+const DHSS_C = 0;
+const DHSS_K = 3;
+const dhss = (x: number) => x + DHSS_C * x * x - DHSS_C * x - (6 * x ** 3 - 9 * x ** 2 + 3 * x) / DHSS_K;
+
 const rm = (n: number) => `RM ${Math.round(n).toLocaleString("en-MY")}`;
 
 /**
- * Week-by-week cash position for the subcontractor: spend follows an S-curve over
+ * Week-by-week cash position for the subcontractor: spend follows the DHSS S-curve over
  * the duration, progress claims are paid after certification and payment periods,
  * less retention (up to its limit) and pro-rata advance recovery.
  */
@@ -24,10 +30,15 @@ export function computeFunding(deal: DealInput, terms: KeyTerms | null): Funding
   const t = terms ?? ({} as Partial<KeyTerms>);
   const assumptions: FundingExposure["assumptions"] = [];
   const L = (text: string, vars?: Record<string, string | number>) => tr(deal.lang ?? "en", text, vars);
-  const pick = (key: keyof typeof DEFAULTS, label: string, unit: string) => {
+  const pick = (key: keyof typeof DEFAULTS, label: string, unit: string, basis?: string) => {
     const fromDocs = t[key];
     const value = typeof fromDocs === "number" && fromDocs > 0 ? fromDocs : DEFAULTS[key];
-    assumptions.push({ label: L(label), value: L(`{n}${unit}`, { n: value }), source: fromDocs ? "documents" : "default" });
+    assumptions.push({
+      label: L(label),
+      value: L(`{n}${unit}`, { n: value }),
+      source: fromDocs ? "documents" : "default",
+      ...(!fromDocs && basis ? { basis: L(basis) } : {}),
+    });
     return value;
   };
 
@@ -44,7 +55,8 @@ export function computeFunding(deal: DealInput, terms: KeyTerms | null): Funding
   } else {
     weeks = pick("completion_weeks", "Duration", " weeks");
   }
-  const claimEvery = Math.max(1, Math.round(pick("claim_interval_days", "Claim interval", " days") / 7));
+  assumptions.push({ label: L("Spend curve"), value: "DHSS", source: "default", basis: L("Hudson (1978); shape constants assumed") });
+  const claimEvery = Math.max(1, Math.round(pick("claim_interval_days", "Claim interval", " days", "CIPAA 2012 s36(3): monthly") / 7));
   const payLag = Math.round(
     (pick("certification_days", "Certification period", " days") + pick("payment_due_days", "Payment period after certification", " days")) / 7,
   );
@@ -58,10 +70,8 @@ export function computeFunding(deal: DealInput, terms: KeyTerms | null): Funding
   const weeklyOverhead = Math.max(0, deal.monthlyOverhead) * (12 / 52);
   if (weeklyOverhead) assumptions.push({ label: L("Fixed overhead"), value: L("{n}/month", { n: rm(deal.monthlyOverhead) }), source: "deal input" });
 
-  // S-curve: weekly share of work ∝ sin(π·(w+0.5)/weeks)
-  const shares = Array.from({ length: weeks }, (_, w) => Math.sin((Math.PI * (w + 0.5)) / weeks));
-  const shareSum = shares.reduce((a, b) => a + b, 0);
-  const earned = shares.map((s) => (s / shareSum) * value);
+  // DHSS S-curve (Hudson 1978): cumulative share of value at time fraction x.
+  const earned = Array.from({ length: weeks }, (_, w) => (dhss((w + 1) / weeks) - dhss(w / weeks)) * value);
 
   // Progress claims at each interval and at completion
   const claims: { week: number; gross: number }[] = [];

@@ -1,13 +1,21 @@
 import { connection } from "next/server";
-import { bedrockConfig, getClient } from "@/lib/bedrock";
+import { bedrockConfig, getClient, MODEL_CHOICES, modelSwitchAllowed, withModelChoice } from "@/lib/bedrock";
 import { friendlyError } from "@/lib/errors";
 
 // GET /api/health          → which mode, model and region the server is configured for
-// GET /api/health?ping=1   → also makes a tiny Bedrock call to prove the connection works
-export async function GET(req: Request) {
+// GET /api/health?ping=1   → also makes a tiny model call to prove the connection works
+async function handle(req: Request) {
   await connection();
   const cfg = bedrockConfig();
-  const info = { mode: cfg.demo ? "demo" : "bedrock", model: cfg.model, region: cfg.region, endpoint: cfg.endpoint, auth: cfg.auth };
+  const info = {
+    mode: cfg.demo ? "demo" : "bedrock",
+    choice: cfg.choice,
+    choices: modelSwitchAllowed() ? MODEL_CHOICES : [],
+    model: cfg.model,
+    region: cfg.region,
+    endpoint: cfg.endpoint,
+    auth: cfg.auth,
+  };
   if (cfg.demo || new URL(req.url).searchParams.get("ping") !== "1") return Response.json(info);
 
   const started = Date.now();
@@ -24,3 +32,5 @@ export async function GET(req: Request) {
     return Response.json({ ...info, ok: false, error: friendlyError(err) }, { status: 502 });
   }
 }
+
+export const GET = withModelChoice(handle);

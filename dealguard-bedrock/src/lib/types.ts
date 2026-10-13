@@ -42,6 +42,7 @@ export interface DealInput {
   monthlyOverhead: number; // RM fixed overhead carried while the job runs
   redLines: RedLines;
   lang?: Lang; // language the analysis is written in (English when absent)
+  missingDocuments?: { name: string; why: string }[]; // the upload check's list the user saw; the result reuses it
 }
 
 export interface DocMeta {
@@ -195,7 +196,7 @@ export interface FundingPoint {
 }
 
 export interface FundingExposure {
-  assumptions: { label: string; value: string; source: "documents" | "deal input" | "default" }[];
+  assumptions: { label: string; value: string; source: "documents" | "deal input" | "default"; basis?: string }[]; // basis: where a default comes from
   series: FundingPoint[];
   peakNeed: number;
   peakWeek: number;

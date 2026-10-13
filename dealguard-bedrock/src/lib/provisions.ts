@@ -24,7 +24,7 @@ export interface ProvisionDef {
 }
 
 export const PROVISIONS: ProvisionDef[] = [
-  { id: "parties", label: "Parties & counterparty", group: "parties", owner: "consistency", looksFor: "Correct legal entities, signatory authority, counterparty track record and checks to run." },
+  { id: "parties", label: "Parties & counterparty", group: "parties", owner: "consistency", looksFor: "Correct legal entities, signatory authority, and the counterparty checks to run." },
   { id: "documents", label: "Contract documents & back-to-back", group: "parties", owner: "consistency", looksFor: "Which documents form the subcontract, documents incorporated by reference (main contract), draft or signed status, acceptance deadline." },
   { id: "precedence", label: "Order of precedence", group: "parties", owner: "consistency", looksFor: "How conflicts between documents are resolved, and conflicts that already exist between them." },
   { id: "sum_basis", label: "Contract sum & basis", group: "price", owner: "scope", looksFor: "Lump sum or remeasurement, provisional sums and items, what the sum includes." },

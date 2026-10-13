@@ -175,6 +175,9 @@ export async function runPipeline(
     );
   }
 
+  // The user already saw and accepted the upload check's list of missing documents, so the result uses the same list.
+  if (intake && deal.missingDocuments) intake.missing_documents = deal.missingDocuments;
+
   const facts: Fact[] = ledger?.facts ?? [];
   const gaps: Gap[] = ledger?.gaps ?? [];
   const factIds = new Set(facts.map((f) => f.id));

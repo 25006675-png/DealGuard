@@ -1,4 +1,4 @@
-import { bedrockConfig, getClient } from "@/lib/bedrock";
+import { bedrockConfig, getClient, withModelChoice } from "@/lib/bedrock";
 import { analysisContext } from "@/lib/context";
 import { DEMO_DRAFTS } from "@/lib/demo-drafts";
 import { DEMO_DRAFTS_MS } from "@/lib/demo-ms";
@@ -8,7 +8,7 @@ import type { Analysis } from "@/lib/types";
 
 export const maxDuration = 120;
 
-export async function POST(req: Request) {
+async function handle(req: Request) {
   const cfg = bedrockConfig();
   let body: { kind?: DraftKind; analysis?: Analysis };
   try {
@@ -57,3 +57,5 @@ export async function POST(req: Request) {
 
   return new Response(stream, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
 }
+
+export const POST = withModelChoice(handle);

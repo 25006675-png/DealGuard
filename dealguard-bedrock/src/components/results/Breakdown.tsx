@@ -14,7 +14,7 @@ import { CheckRow, GRADE_STYLE, GradeBadge, PHASES, ProvisionMark } from "./shar
 
 type Filter = "all" | "attention" | "missing";
 
-const STATUS_LABEL = { present: "In the documents", missing: "Not in the documents", unclear: "Unclear" } as const;
+const STATUS_LABEL = { present: "In the contract", missing: "Not in the contract", unclear: "Unclear" } as const;
 
 export function Breakdown({ analysis, selected, onSelect }: { analysis: Analysis; selected: string; onSelect: (id: string) => void }) {
   const { open, factById } = useEvidence();
@@ -212,12 +212,12 @@ function ProvisionDetail({
         {rec.grade !== "normal" ? (
           <div className="mt-4 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2">
             <div className="bg-surface px-4 py-3">
-              <p className="text-[11.5px] font-medium uppercase tracking-wide text-ink-3">{t("Normal")}</p>
+              <p className="text-[11.5px] font-medium uppercase tracking-wide text-ink-3">{t("Usual in Malaysia")}</p>
               <p className="mt-0.5 text-[14.5px]">{rec.normal}</p>
             </div>
             <div className="px-4 py-3" style={{ background: GRADE_STYLE[rec.grade].soft }}>
               <p className="text-[11.5px] font-medium uppercase tracking-wide" style={{ color: GRADE_STYLE[rec.grade].text }}>
-                {t("Yours")}
+                {t("Your contract")}
               </p>
               <p className="mt-0.5 text-[14.5px] font-medium">{rec.yours}</p>
             </div>

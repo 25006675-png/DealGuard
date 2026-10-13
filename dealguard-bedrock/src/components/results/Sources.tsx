@@ -47,7 +47,7 @@ export function Sources({ analysis }: { analysis: Analysis }) {
           </ul>
           {intake.missing_documents.length ? (
             <div className="border-t border-line px-5 py-3.5">
-              <p className="text-[13px] font-medium text-ink-3">{t("Not in the package")}</p>
+              <p className="text-[13px] font-medium text-ink-3">{t("Not provided")}</p>
               <ul className="mt-1.5 space-y-1 text-[14px]">
                 {intake.missing_documents.map((m) => (
                   <li key={m.name}>
@@ -63,7 +63,7 @@ export function Sources({ analysis }: { analysis: Analysis }) {
       <Card>
         <CardHeader
           title={t("Fact ledger")}
-          hint={t("{n} facts, each with the quote Bedrock returned from your documents", { n: analysis.facts.length })}
+          hint={t("{n} facts, each with its quote from your documents", { n: analysis.facts.length })}
           action={
             <span className="flex items-center gap-1.5 text-[12px]" style={{ color: "var(--good-text)" }}>
               <BadgeCheck size={14} aria-hidden /> {t("{n} verified", { n: analysis.facts.filter((f) => f.sources.length).length })}
@@ -104,7 +104,7 @@ export function Sources({ analysis }: { analysis: Analysis }) {
 
       {analysis.gaps.length ? (
         <Card>
-          <CardHeader title={t("Looked for but not found")} hint={t("Terms you'd expect in a subcontract that aren't in these documents")} />
+          <CardHeader title={t("Not in the contract")} hint={t("Terms you'd expect in a subcontract that aren't in these documents")} />
           <ul className="divide-y divide-line">
             {analysis.gaps.map((g) => (
               <li key={g.id} className="flex items-start gap-3 px-5 py-2.5 text-[14px]">

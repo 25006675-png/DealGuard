@@ -23,7 +23,7 @@ export function Method({ analysis }: { analysis: Analysis }) {
     <div className="grid gap-5 lg:grid-cols-12">
       <Card className="paper overflow-hidden lg:col-span-7">
         <CardHeader title={t("Agent pipeline")} hint={t("Drag to rotate. Eight Claude steps on Bedrock, two plain calculations.")} />
-        <PipelineScene status={status} advisorReady interactive className="h-[440px] w-full" />
+        <PipelineScene status={status} interactive className="h-[440px] w-full" />
       </Card>
       <Card className="lg:col-span-5">
         <CardHeader title={t("Steps")} hint={`${analysis.model} · ${analysis.mode === "demo" ? t("demo replay") : "Amazon Bedrock"}`} />

@@ -29,8 +29,8 @@ export function SeverityBadge({ severity, compact }: { severity: Severity; compa
   );
 }
 
-export function Card({ children, className, as: As = "section" }: { children: ReactNode; className?: string; as?: "section" | "div" | "article" }) {
-  return <As className={cx("rounded-xl border border-line bg-surface", className)}>{children}</As>;
+export function Card({ children, className, as: As = "section", id }: { children: ReactNode; className?: string; as?: "section" | "div" | "article"; id?: string }) {
+  return <As id={id} className={cx("rounded-xl border border-line bg-surface", className)}>{children}</As>;
 }
 
 export function CardHeader({ title, hint, action }: { title: ReactNode; hint?: ReactNode; action?: ReactNode }) {

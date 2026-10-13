@@ -56,7 +56,7 @@ export function EvidenceProvider({ analysis, files, children }: { analysis: Anal
         title={
           <span className="flex items-center gap-2">
             <span className="font-mono text-[13px] text-brand">{selected}</span>
-            <span className="truncate">{finding ? t("Finding") : gap ? t("Not found in documents") : t("Evidence")}</span>
+            <span className="truncate">{finding ? t("Finding") : gap ? t("Not in the contract") : t("Evidence")}</span>
           </span>
         }
       >

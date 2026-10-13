@@ -40,6 +40,11 @@
   /* chart series (validated reference palette) */
   --series-1: #2a78d6;
   --series-2: #eb6834;
+  /* pipeline layers: input, read & verify, expert team, scoring & decision */
+  --layer-0: #6b7483;
+  --layer-1: #17807a;
+  --layer-2: #2a78d6;
+  --layer-3: #5b4fc4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -72,6 +77,10 @@
     --low-soft: rgba(138, 147, 163, 0.15);
     --series-1: #3987e5;
     --series-2: #d95926;
+    --layer-0: #868c96;
+    --layer-1: #3fb8ad;
+    --layer-2: #3987e5;
+    --layer-3: #8b80f0;
   }
 }
 
@@ -104,6 +113,10 @@
   --low-soft: rgba(138, 147, 163, 0.15);
   --series-1: #3987e5;
   --series-2: #d95926;
+  --layer-0: #868c96;
+  --layer-1: #3fb8ad;
+  --layer-2: #3987e5;
+  --layer-3: #8b80f0;
 }
 
 @theme inline {

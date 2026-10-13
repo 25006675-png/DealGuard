@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, FileImage, FileSpreadsheet, FileText, Loader2, Plus, ShieldCheck, SlidersHorizontal, Sparkles, TriangleAlert, Upload, X } from "lucide-react";
+import { ArrowRight, Check, FileImage, FileWarning, FileSpreadsheet, FileText, Loader2, Plus, ShieldCheck, SlidersHorizontal, Sparkles, TriangleAlert, Upload, X } from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { rmCompact } from "@/lib/format";
@@ -64,7 +64,11 @@ const PACKAGE_SUGGESTIONS = ["Bored piling and empty bore works", "M&E services"
 const FORMS = ["Not sure", ...STANDARD_FORMS];
 
 /** Where the automatic first read of the uploads has got to. */
-export type PrefillState = { status: "idle" } | { status: "reading" } | { status: "done"; filled: string[] } | { status: "irrelevant"; note: string };
+export type PrefillState =
+  | { status: "idle" }
+  | { status: "reading" }
+  | { status: "done"; filled: string[]; missing: { name: string; why: string }[] }
+  | { status: "irrelevant"; note: string };
 const STAGES: { id: DealStage; label: string }[] = [
   { id: "tender", label: "Quoting" },
   { id: "loa", label: "LOA received" },
@@ -73,7 +77,7 @@ const STAGES: { id: DealStage; label: string }[] = [
 ];
 const PROJECT_TYPES: { id: ProjectType; label: string }[] = [
   { id: "private", label: "Private" },
-  { id: "government", label: "Govt" },
+  { id: "government", label: "Government" },
   { id: "unknown", label: "Not sure" },
 ];
 
@@ -174,7 +178,7 @@ function CashPreview({ deal }: { deal: DealInput }) {
 
   return (
     <div>
-      <p className="text-[12.5px] text-ink-3">{t("Cash you'd need at the worst point")}</p>
+      <p className="text-[12.5px] text-ink-3">{t("Peak cash need")}</p>
       <motion.p key={Math.round(funding.peakNeed / 10000)} initial={{ opacity: 0.4, y: 4 }} animate={{ opacity: 1, y: 0 }} className="mt-0.5 text-[30px] font-semibold tracking-tight">
         {rmCompact(funding.peakNeed)}
       </motion.p>
@@ -234,7 +238,13 @@ export function SetupView({
   }
 
   const deal = useMemo(() => formToDeal(form), [form]);
-  const ready = deal.contractValue > 0 && (demo || files.length > 0);
+  // Wrong documents stop the review; missing ones need the user's go-ahead (tied to this read of the files).
+  const [acceptedFor, setAcceptedFor] = useState<PrefillState | null>(null);
+  const missing = files.length && prefill.status === "done" ? prefill.missing : [];
+  const awaitingAnswer = missing.length > 0 && acceptedFor !== prefill;
+  const checking = files.length > 0 && prefill.status === "reading";
+  const wrongDocs = files.length > 0 && prefill.status === "irrelevant";
+  const ready = deal.contractValue > 0 && (demo || files.length > 0) && !checking && !wrongDocs && !awaitingAnswer;
   const customRedLines = JSON.stringify(form.redLines) !== JSON.stringify(DEFAULT_RED_LINES);
   const filled = new Map(files.map((f) => [slotFor(f.name), f] as const));
 
@@ -243,7 +253,7 @@ export function SetupView({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-[30px] font-semibold tracking-tight sm:text-[36px]">{t("What are you being asked to sign?")}</h1>
-          <p className="mt-2 max-w-2xl text-[16px] text-ink-2">{t("Drop in the package. We read the terms; you tell us the few things a contract can't.")}</p>
+          <p className="mt-2 max-w-2xl text-[16px] text-ink-2">{t("Drop in what the main contractor sent you. We read the terms; you tell us the few things a contract can't.")}</p>
         </div>
         <div className="flex items-center gap-2">
           {demo ? (
@@ -353,11 +363,40 @@ export function SetupView({
               </span>
             </p>
           ) : null}
+          {missing.length ? (
+            <div className="mt-3 rounded-lg px-3 py-2.5 text-[13.5px]" style={{ background: "var(--warning-soft)", color: "var(--warning-text)" }} aria-live="polite">
+              <p className="flex items-start gap-2">
+                <FileWarning size={15} className="mt-0.5 shrink-0" aria-hidden />
+                <span>
+                  <span className="font-medium">{t("Not provided:")}</span> {t("the result may not be fully accurate without them.")}
+                </span>
+              </p>
+              <ul className="mt-1.5 space-y-1 pl-6">
+                {missing.map((m) => (
+                  <li key={m.name}>
+                    <span className="font-medium">{m.name}</span> · {m.why}
+                  </li>
+                ))}
+              </ul>
+              {awaitingAnswer ? (
+                <div className="mt-2.5 flex flex-wrap gap-2 pl-6">
+                  <Button type="button" size="sm" onClick={() => input.current?.click()}>
+                    <Plus size={14} aria-hidden /> {t("Add files")}
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setAcceptedFor(prefill)}>
+                    {t("Continue without them")}
+                  </Button>
+                </div>
+              ) : (
+                <p className="mt-2 pl-6">{t("Continuing without them. The result will say what was missing.")}</p>
+              )}
+            </div>
+          ) : null}
 
           {/* What the documents can't tell us */}
           <h2 className="mt-12 text-[18px] font-semibold tracking-tight">{t("A few things the documents can't tell us")}</h2>
           <div className="mt-2 border-t border-line">
-            <Row label={t("Where you are")}>
+            <Row label={t("Deal stage")}>
               <Segmented label="stage" value={form.stage} options={STAGES.map((o) => ({ ...o, label: t(o.label) }))} onChange={set("stage")} />
             </Row>
             <Row label={t("Trade and package")}>
@@ -375,16 +414,16 @@ export function SetupView({
               </div>
             </Row>
             <Row label={t("Contract form")} hint={t("If you know it")}>
-              <div className="grid gap-3 sm:grid-cols-[1.4fr_1fr]">
-                <select className={field} value={form.standardForm} onChange={(e) => set("standardForm")(e.target.value)} aria-label="Standard form">
-                  {FORMS.map((f) => (
-                    <option key={f} value={f}>
-                      {t(f)}
-                    </option>
-                  ))}
-                </select>
-                <Segmented label="project" value={form.projectType} options={PROJECT_TYPES.map((o) => ({ ...o, label: t(o.label) }))} onChange={set("projectType")} />
-              </div>
+              <select className={field} value={form.standardForm} onChange={(e) => set("standardForm")(e.target.value)} aria-label="Standard form">
+                {FORMS.map((f) => (
+                  <option key={f} value={f}>
+                    {t(f)}
+                  </option>
+                ))}
+              </select>
+            </Row>
+            <Row label={t("Project type")}>
+              <Segmented label="project" value={form.projectType} options={PROJECT_TYPES.map((o) => ({ ...o, label: t(o.label) }))} onChange={set("projectType")} />
             </Row>
             <Row label={t("Your money")} hint={t("Cash and facilities you can put in, and any advance offered")}>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -415,7 +454,7 @@ export function SetupView({
         <aside className="lg:sticky lg:top-20">
           <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_20px_50px_-30px_rgba(20,23,28,0.35)]">
             <div className="px-5 pb-4 pt-5">
-              <p className="font-mono text-[11px] uppercase tracking-wider text-ink-3">{t("Deal ticket")}</p>
+              <p className="font-mono text-[11px] uppercase tracking-wider text-ink-3">{t("Deal summary")}</p>
               <p className="mt-2 text-[17px] font-semibold leading-snug">{deal.packageType || t("Untitled package")}</p>
               <p className="mt-0.5 text-[13.5px] tabular text-ink-2">
                 {deal.contractValue ? `RM ${deal.contractValue.toLocaleString("en-MY")}` : t("Value not set")}
@@ -450,7 +489,15 @@ export function SetupView({
                 {t("Review this deal")} <ArrowRight size={16} aria-hidden />
               </Button>
               <p className="mt-2 text-center text-[12px] text-ink-3">
-                {ready ? t("8 agents · about 3 minutes · Claude on Amazon Bedrock") : t("Add the subcontract value and at least one document")}
+                {ready
+                  ? t("8 agents · about 1 minute · Claude on Amazon Bedrock")
+                  : wrongDocs
+                    ? t("Upload construction deal documents to continue")
+                    : checking
+                      ? t("Checking your documents…")
+                      : awaitingAnswer
+                        ? t("Add the missing documents or continue without them")
+                        : t("Add the subcontract value and at least one document")}
               </p>
               <button type="button" onClick={() => setRedLinesOpen(true)} className="mt-4 flex w-full items-center justify-between rounded-lg border border-line px-3 py-2 text-left text-[13px] hover:bg-surface-2">
                 <span className="flex items-center gap-2">

@@ -1,4 +1,4 @@
-import { bedrockConfig, getClient } from "@/lib/bedrock";
+import { bedrockConfig, getClient, withModelChoice } from "@/lib/bedrock";
 import { analysisContext } from "@/lib/context";
 import { demoReply } from "@/lib/demo";
 import { friendlyError } from "@/lib/errors";
@@ -10,7 +10,7 @@ export const maxDuration = 120;
 
 const MAX_MESSAGE_CHARS = 4000;
 
-export async function POST(req: Request) {
+async function handle(req: Request) {
   const cfg = bedrockConfig();
   let body: { analysis?: Analysis; messages?: ChatMessage[] };
   try {
@@ -74,3 +74,5 @@ export async function POST(req: Request) {
 
   return new Response(stream, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
 }
+
+export const POST = withModelChoice(handle);

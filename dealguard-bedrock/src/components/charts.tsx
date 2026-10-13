@@ -67,9 +67,10 @@ export function FundingChart({ funding, commitment }: { funding: FundingExposure
         viewBox={`0 0 ${W} ${H}`}
         className="w-full touch-none select-none"
         role="img"
-        aria-label={`Cash position over ${xMax} weeks. Peak funding need ${rm(funding.peakNeed)} in week ${funding.peakWeek}.`}
+        aria-label={`Cash position over ${xMax} weeks. Peak cash need ${rm(funding.peakNeed)} in week ${funding.peakWeek}.`}
         onPointerMove={onMove}
-        onPointerLeave={() => setHoverWeek(null)}
+        onPointerDown={onMove}
+        onPointerLeave={(e) => e.pointerType === "mouse" && setHoverWeek(null)}
       >
         {ticks.map((t) => (
           <g key={t}>
@@ -99,7 +100,7 @@ export function FundingChart({ funding, commitment }: { funding: FundingExposure
           <g>
             <circle cx={x(peak.week)} cy={y(peak.net)} r={5} fill="var(--series-1)" stroke="var(--surface)" strokeWidth={2} />
             <text x={x(peak.week)} y={y(peak.net) + 20} textAnchor="middle" className="fill-[var(--ink)] text-[12px] font-medium">
-              {t("Peak need")} {rmCompact(funding.peakNeed)}
+              {t("Peak cash need")} {rmCompact(funding.peakNeed)}
             </text>
           </g>
         ) : null}
@@ -142,7 +143,7 @@ export function FundingChart({ funding, commitment }: { funding: FundingExposure
             </span>
           </span>
         ) : (
-          <span>{t("Below zero means you are funding the works yourself. Hover the chart for week-by-week figures.")}</span>
+          <span>{t("Below zero means you are funding the works yourself. Hover or tap the chart for week-by-week figures.")}</span>
         )}
       </div>
     </div>

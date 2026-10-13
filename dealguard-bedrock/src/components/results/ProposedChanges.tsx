@@ -105,10 +105,10 @@ export function ProposedChanges({
       </button>
       <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-[28px] font-semibold tracking-tight">{t("Your proposed changes")}</h2>
+          <h2 className="text-[28px] font-semibold tracking-tight">{t("Your reply")}</h2>
           <p className="mt-1 text-[15px] text-ink-2">
             {rows.length === 1 ? t("{n} clause change", { n: rows.length }) : t("{n} clause changes", { n: rows.length })}
-            {pending.length ? t(", {n} still being prepared", { n: pending.length }) : ""}. {t("Send these back with your reply instead of signing as-is.")}
+            {pending.length ? t(", {n} still being prepared", { n: pending.length }) : ""}. {t("Check them, then send the letter and schedule of amendments instead of signing as-is.")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -191,7 +191,7 @@ export function ProposedChanges({
           </Card>
         ))}
         {!rows.length && !pending.length ? (
-          <Card className="p-8 text-center text-[14.5px] text-ink-2">{t("No changes selected yet. Go back to the action plan and tick the points you want to ask for.")}</Card>
+          <Card className="p-8 text-center text-[14.5px] text-ink-2">{t("No changes chosen yet. Go back to the action plan and choose \"Negotiate\" on the points you want to change.")}</Card>
         ) : null}
       </div>
 

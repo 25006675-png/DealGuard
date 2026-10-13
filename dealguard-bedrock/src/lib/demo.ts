@@ -73,7 +73,7 @@ const GAPS: Gap[] = [
   { id: "G04", category: "scope", statement: "No drawings, pile layout, specification or soil investigation report in the package." },
 ];
 
-const INTAKE: Intake = {
+export const INTAKE: Intake = {
   documents: [
     { name: SAMPLE_FILES[0], doc_type: "Letter of Award", status: "signed", summary: "Issued and signed by Contoh Bina; awaiting your acceptance within 3 days." },
     { name: SAMPLE_FILES[1], doc_type: "Subcontract Conditions", status: "draft", summary: "Revision B, marked draft for discussion; sets payment, EOT, LAD, termination and dispute terms." },

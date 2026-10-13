@@ -22,7 +22,7 @@ type TabId = "plan" | "changes" | "breakdown" | "deadlines" | "cash" | "sources"
 
 const PRIMARY: { id: TabId; label: string }[] = [
   { id: "plan", label: "Action plan" },
-  { id: "changes", label: "Proposed changes" },
+  { id: "changes", label: "Your reply" },
 ];
 const DETAIL: { id: TabId; label: string }[] = [
   { id: "breakdown", label: "All 23 points" },
@@ -121,7 +121,7 @@ function ResultsBody({ analysis, onAsk, onReset }: { analysis: Analysis; onAsk: 
 
       <AnimatePresence mode="wait">
         <motion.div key={tab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18 }} className="mt-8">
-          {tab === "plan" ? <ActionPlan analysis={analysis} selected={selected} onToggle={toggle} goTo={go} /> : null}
+          {tab === "plan" ? <ActionPlan analysis={analysis} selected={selected} onToggle={toggle} goTo={go} onOpenProvision={openProvision} /> : null}
           {tab === "changes" ? <ProposedChanges analysis={analysis} selected={selected} onToggle={toggle} goBack={() => go("plan")} /> : null}
           {tab === "breakdown" ? <Breakdown analysis={analysis} selected={provision} onSelect={setProvision} /> : null}
           {tab === "deadlines" ? <Deadlines analysis={analysis} onOpenProvision={openProvision} /> : null}

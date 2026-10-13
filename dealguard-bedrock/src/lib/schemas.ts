@@ -32,6 +32,10 @@ const relevance = {
   relevance_note: z.string().describe("If relevant is false, one plain sentence saying what the uploads appear to be. Empty string otherwise"),
 };
 
+const missingDocuments = z
+  .array(z.object({ name: z.string(), why: z.string() }))
+  .describe("Documents referenced or normally expected but not provided (e.g. main contract, specification, programme)");
+
 export const intakeSchema = z.object({
   ...relevance,
   documents: z
@@ -39,14 +43,14 @@ export const intakeSchema = z.object({
       z.object({
         name: z.string().describe("File name exactly as provided"),
         doc_type: z.string().describe("e.g. Letter of Award, Subcontract Conditions, Bill of Quantities, Quotation, Programme, Drawing, Correspondence"),
-        status: z.enum(["signed", "draft", "unclear"]),
+        status: z
+          .enum(["signed", "draft", "unclear"])
+          .describe("draft only if the document itself says draft, for discussion or subject to change; signed only if it shows signatures; otherwise unclear"),
         summary: z.string().describe("One sentence on what this document governs"),
       }),
     )
     .describe("One entry per uploaded document"),
-  missing_documents: z
-    .array(z.object({ name: z.string(), why: z.string() }))
-    .describe("Documents referenced or normally expected but not provided (e.g. main contract, specification, programme)"),
+  missing_documents: missingDocuments,
   precedence_note: z.string().describe("What the documents say about order of precedence, or that none is stated"),
   terms: keyTermsSchema,
 });
@@ -136,6 +140,7 @@ export const prefillSchema = z.object({
   advance_payment_rm: num("Advance payment offered in RM (work a percentage out from the sum), or null if none is stated"),
   standard_form: z.enum(STANDARD_FORMS).nullable().describe("The contract form the subcontract is based on; bespoke if the main contractor wrote its own conditions; null if you can't tell"),
   project_type: z.enum(["private", "government"]).nullable().describe("Whether the employer is a private or a government body; null if you can't tell"),
+  missing_documents: missingDocuments,
 });
 
 export type PrefillOutput = z.infer<typeof prefillSchema>;

@@ -95,12 +95,12 @@ export function Landing() {
               Read the contract before it reads your bank balance.
             </motion.h1>
             <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.6 }} className="mt-6 max-w-xl text-[18px] leading-relaxed text-ink-2">
-              DealGuard breaks your Letter of Award and subcontract into 23 provisions: what each one says, what you must do and by when, and what to ask for. Then it
-              stress-tests your cash flow before you sign.
+              When a bigger company hires you for part of a project, DealGuard breaks their Letter of Award and contract into 23 provisions: what each one says, what you
+              must do and by when, and what to ask for. Then it stress-tests your cash flow before you sign.
             </motion.p>
             <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22, duration: 0.6 }}>
               <CTA className="mt-8" />
-              <p className="mt-6 text-[13px] text-ink-3">For Malaysian trade subcontractors · CIPAA 2012 checks · every point linked to the clause</p>
+              <p className="mt-6 text-[13px] text-ink-3">For small construction businesses in Malaysia · CIPAA 2012 checks · every point linked to the clause</p>
             </motion.div>
           </div>
           <motion.div initial={{ opacity: 0, y: 24, rotate: 1.2 }} animate={{ opacity: 1, y: 0, rotate: 0 }} transition={{ delay: 0.15, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}>

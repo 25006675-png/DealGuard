@@ -20,6 +20,34 @@ export const SAMPLE_DEAL: DealInput = {
   redLines: DEFAULT_RED_LINES,
 };
 
+// Six-PDF reinforced concrete deal served from public/sample-deal-pdf. "Load sample deal" uses it when
+// the app runs on a live model; demo mode and the landing page keep the piling deal above, which the
+// demo replay is built from. Figures are from Appendix A and B; funding, margin and overhead are assumed.
+export const SAMPLE_PDF_FILES = [
+  "01_Letter_of_Award_5_Oct_2026.pdf",
+  "02_Appendix_A_Commercial_Particulars.pdf",
+  "03_Bill_of_Quantities_RC_Works_Extract.pdf",
+  "04_Appendix_B_Programme_Time_and_LAD.pdf",
+  "05_Conditions_of_Subcontract_Extract.pdf",
+  "06_Document_Transmittal_Register.pdf",
+];
+
+export const SAMPLE_PDF_DEAL: DealInput = {
+  packageType: "Reinforced concrete works",
+  contractValue: 12000000,
+  fundingCommitment: 1200000,
+  advancePayment: 600000,
+  durationWeeks: 104,
+  context:
+    "We are a reinforced concrete subcontractor. PBT has issued a Letter of Award for the Precinct 8 residential development in Putrajaya, 24 months from site possession. We haven't been shown the main contract terms that sit above this package. We have about RM 1.2m available for working capital and our overhead runs about RM 30k a month.",
+  standardForm: "Bespoke (main contractor's own conditions)",
+  projectType: "private",
+  stage: "loa",
+  marginPct: 12,
+  monthlyOverhead: 30000,
+  redLines: DEFAULT_RED_LINES,
+};
+
 // Terms as read from the sample documents (used by demo mode and the landing page).
 export const SAMPLE_TERMS: KeyTerms = {
   contract_sum_rm: 2400000,

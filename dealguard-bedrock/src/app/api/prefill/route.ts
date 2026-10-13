@@ -1,5 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import { bedrockConfig, callTool, emptyUsage } from "@/lib/bedrock";
+import { bedrockConfig, callTool, emptyUsage, withModelChoice } from "@/lib/bedrock";
+import { INTAKE } from "@/lib/demo";
+import { localizeDemo } from "@/lib/demo-ms";
 import { documentBlocks, MAX_FILES, MAX_TOTAL_BYTES, prepareFiles, UnsupportedFileError, type PreparedDoc } from "@/lib/documents";
 import { friendlyError } from "@/lib/errors";
 import { toLang } from "@/lib/i18n";
@@ -18,7 +20,7 @@ const PREFILL_TOOL: Anthropic.Tool = {
 const bad = (message: string) => Response.json({ error: message }, { status: 400 });
 
 // POST files → the basic deal details read from them, so the setup form can fill itself in.
-export async function POST(req: Request) {
+async function handle(req: Request) {
   const cfg = bedrockConfig();
   const form = await req.formData();
   const files = form.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
@@ -35,6 +37,7 @@ export async function POST(req: Request) {
       advance_payment_rm: null,
       standard_form: "Bespoke (main contractor's own conditions)",
       project_type: "private",
+      missing_documents: localizeDemo(INTAKE.missing_documents, toLang(form.get("lang"))),
     };
     return Response.json(sample);
   }
@@ -73,6 +76,7 @@ export async function POST(req: Request) {
       contract_sum_rm: amount(out.contract_sum_rm),
       completion_weeks: amount(out.completion_weeks),
       advance_payment_rm: amount(out.advance_payment_rm),
+      missing_documents: out.missing_documents.slice(0, 6),
     };
     return Response.json(result);
   } catch (err) {
@@ -80,3 +84,5 @@ export async function POST(req: Request) {
     return Response.json({ error: friendlyError(err) }, { status: 502 });
   }
 }
+
+export const POST = withModelChoice(handle);

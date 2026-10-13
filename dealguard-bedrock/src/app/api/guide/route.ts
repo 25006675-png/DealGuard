@@ -1,5 +1,5 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import { bedrockConfig, callTool, emptyUsage } from "@/lib/bedrock";
+import { bedrockConfig, callTool, emptyUsage, withModelChoice } from "@/lib/bedrock";
 import { localizeDemo } from "@/lib/demo-ms";
 import { demoGuide } from "@/lib/demo-provisions";
 import { friendlyError } from "@/lib/errors";
@@ -19,7 +19,7 @@ const GUIDE_TOOL: Anthropic.Tool = {
 };
 
 // POST { deal, provision, facts } → { negotiation, change } for one contract point.
-export async function POST(req: Request) {
+async function handle(req: Request) {
   const cfg = bedrockConfig();
   let body: { deal?: DealInput; provision?: ProvisionRecord; facts?: Fact[] };
   try {
@@ -89,3 +89,5 @@ Write the negotiation guide and the replacement wording for this point. replaces
     return Response.json({ error: friendlyError(err) }, { status: 502 });
   }
 }
+
+export const POST = withModelChoice(handle);

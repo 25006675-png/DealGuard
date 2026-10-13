@@ -1,4 +1,4 @@
-import { bedrockConfig } from "@/lib/bedrock";
+import { bedrockConfig, withModelChoice } from "@/lib/bedrock";
 import { runDemoPipeline } from "@/lib/demo";
 import { MAX_FILES, MAX_TOTAL_BYTES, prepareFiles, UnsupportedFileError, type PreparedDoc } from "@/lib/documents";
 import { friendlyError } from "@/lib/errors";
@@ -29,6 +29,12 @@ function parseDeal(raw: FormDataEntryValue | null): DealInput | null {
       monthlyOverhead: n(d.monthlyOverhead),
       redLines: sanitizeRedLines(d.redLines),
       lang: toLang(d.lang),
+      missingDocuments: Array.isArray(d.missingDocuments)
+        ? d.missingDocuments
+            .slice(0, 6)
+            .map((m: { name?: unknown; why?: unknown }) => ({ name: s(m?.name, 200), why: s(m?.why, 400) }))
+            .filter((m: { name: string }) => m.name)
+        : undefined,
     };
   } catch {
     return null;
@@ -37,7 +43,7 @@ function parseDeal(raw: FormDataEntryValue | null): DealInput | null {
 
 const bad = (message: string) => Response.json({ error: message }, { status: 400 });
 
-export async function POST(req: Request) {
+async function handle(req: Request) {
   const cfg = bedrockConfig();
   const form = await req.formData();
   const deal = parseDeal(form.get("deal"));
@@ -83,3 +89,5 @@ export async function POST(req: Request) {
     },
   });
 }
+
+export const POST = withModelChoice(handle);

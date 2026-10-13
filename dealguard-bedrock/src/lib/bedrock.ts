@@ -1,6 +1,8 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { AnthropicBedrock, AnthropicBedrockMantle } from "@anthropic-ai/bedrock-sdk";
 import type Anthropic from "@anthropic-ai/sdk";
 import type { z } from "zod";
+import { geminiClient } from "./gemini";
 
 // Env names avoid the AWS_ prefix because Amplify Hosting reserves it.
 // Without BEDROCK_API_KEY the SDK falls back to AWS_BEARER_TOKEN_BEDROCK,
@@ -10,13 +12,55 @@ import type { z } from "zod";
 //   mantle  (default) Messages API at bedrock-mantle.{region}.api.aws, model IDs like anthropic.claude-sonnet-5-5
 //   runtime classic InvokeModel at bedrock-runtime, for regions without Mantle (e.g. ap-southeast-5);
 //           use an inference profile ID such as global.anthropic.claude-sonnet-5-5
+// The Bedrock console's copy button gives "export AWS_BEARER_TOKEN_BEDROCK=<key>"; accept that too.
+function cleanKey(raw: string | undefined) {
+  const key = raw?.trim().replace(/^export\s+/, "").replace(/^AWS_BEARER_TOKEN_BEDROCK=/, "").replace(/^["']|["']$/g, "");
+  return key || undefined;
+}
+
+// Which model runs: sonnet (BEDROCK_MODEL_ID), haiku (BEDROCK_HAIKU_MODEL_ID) or gemini (GEMINI_MODEL_ID, testing only).
+// LLM_PROVIDER sets the default. For testing, the header picker stores a per-browser choice in the
+// dg-model cookie; it is honoured outside production, or in production only with ALLOW_MODEL_SWITCH=1.
+export const MODEL_CHOICES = ["sonnet", "haiku", "gemini"] as const;
+export type ModelChoice = (typeof MODEL_CHOICES)[number];
+const MODEL_COOKIE = "dg-model";
+const requestChoice = new AsyncLocalStorage<ModelChoice>();
+
+const isChoice = (value: unknown): value is ModelChoice => MODEL_CHOICES.includes(value as ModelChoice);
+
+export const modelSwitchAllowed = () => process.env.NODE_ENV !== "production" || process.env.ALLOW_MODEL_SWITCH === "1";
+
+function readCookie(req: Request, name: string) {
+  const match = req.headers.get("cookie")?.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : undefined;
+}
+
+/** Wrap a route handler so every model call it makes uses the browser's chosen model. */
+export function withModelChoice(handler: (req: Request) => Promise<Response>) {
+  return (req: Request) => {
+    const picked = modelSwitchAllowed() ? readCookie(req, MODEL_COOKIE) : undefined;
+    return isChoice(picked) ? requestChoice.run(picked, () => handler(req)) : handler(req);
+  };
+}
+
 export function bedrockConfig() {
-  const apiKey = process.env.BEDROCK_API_KEY || undefined;
+  const apiKey = cleanKey(process.env.BEDROCK_API_KEY);
+  const fromEnv = process.env.LLM_PROVIDER?.trim().toLowerCase();
+  const choice: ModelChoice = requestChoice.getStore() ?? (isChoice(fromEnv) ? fromEnv : "sonnet");
+  const endpoint = process.env.BEDROCK_ENDPOINT === "runtime" ? "runtime" : "mantle";
+  const model =
+    choice === "gemini"
+      ? process.env.GEMINI_MODEL_ID || "gemini-3.1-flash-lite"
+      : choice === "haiku"
+        ? process.env.BEDROCK_HAIKU_MODEL_ID || (endpoint === "runtime" ? "global.anthropic.claude-haiku-5-5" : "anthropic.claude-haiku-5-5")
+        : process.env.BEDROCK_MODEL_ID || "anthropic.claude-sonnet-5-5";
   return {
     demo: process.env.DEALGUARD_DEMO === "1",
+    choice,
+    provider: choice === "gemini" ? "gemini" : "bedrock",
     region: process.env.BEDROCK_REGION || process.env.AWS_REGION || "ap-southeast-1",
-    model: process.env.BEDROCK_MODEL_ID || "anthropic.claude-sonnet-5-5",
-    endpoint: process.env.BEDROCK_ENDPOINT === "runtime" ? "runtime" : "mantle",
+    model,
+    endpoint,
     apiKey,
     auth: apiKey || process.env.AWS_BEARER_TOKEN_BEDROCK ? "bedrock-api-key" : "aws-credentials",
   } as const;
@@ -27,13 +71,22 @@ export class RefusalError extends Error {}
 
 type BedrockClient = { messages: Pick<Anthropic.Messages, "create" | "stream"> };
 
-let client: BedrockClient | null = null;
+// One client per provider: the Bedrock client serves both Claude models, Gemini's is bound to its model.
+const clients = new Map<string, BedrockClient>();
 
 export function getClient(): BedrockClient {
+  const cfg = bedrockConfig();
+  const key = cfg.provider === "gemini" ? `gemini:${cfg.model}` : `bedrock:${cfg.endpoint}`;
+  let client = clients.get(key);
   if (!client) {
-    const cfg = bedrockConfig();
     const opts = { awsRegion: cfg.region, apiKey: cfg.apiKey, maxRetries: 3 };
-    client = cfg.endpoint === "runtime" ? new AnthropicBedrock(opts) : new AnthropicBedrockMantle(opts);
+    client =
+      cfg.provider === "gemini"
+        ? (geminiClient(cfg.model) as unknown as BedrockClient)
+        : cfg.endpoint === "runtime"
+          ? new AnthropicBedrock(opts)
+          : new AnthropicBedrockMantle(opts);
+    clients.set(key, client);
   }
   return client;
 }
