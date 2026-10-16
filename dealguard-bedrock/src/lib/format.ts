@@ -12,7 +12,7 @@ export function rmCompact(n: number) {
 
 export const SEVERITY: Record<Severity, { label: string; color: string; text: string; soft: string; rank: number }> = {
   critical: { label: "Critical", color: "var(--critical)", text: "var(--critical-text)", soft: "var(--critical-soft)", rank: 0 },
-  high: { label: "High", color: "var(--serious)", text: "var(--serious-text)", soft: "var(--serious-soft)", rank: 1 },
+  high: { label: "High", color: "var(--warning)", text: "var(--warning-text)", soft: "var(--warning-soft)", rank: 1 },
   medium: { label: "Medium", color: "var(--warning)", text: "var(--warning-text)", soft: "var(--warning-soft)", rank: 2 },
   low: { label: "Low", color: "var(--low)", text: "var(--low-text)", soft: "var(--low-soft)", rank: 3 },
 };

@@ -18,7 +18,7 @@ function cleanKey(raw: string | undefined) {
   return key || undefined;
 }
 
-// Which model runs: sonnet (BEDROCK_MODEL_ID), haiku (BEDROCK_HAIKU_MODEL_ID) or gemini (GEMINI_MODEL_ID, testing only).
+// Which model runs: haiku (default, BEDROCK_HAIKU_MODEL_ID), sonnet (BEDROCK_MODEL_ID) or gemini (GEMINI_MODEL_ID, testing only).
 // LLM_PROVIDER sets the default. For testing, the header picker stores a per-browser choice in the
 // dg-model cookie; it is honoured outside production, or in production only with ALLOW_MODEL_SWITCH=1.
 export const MODEL_CHOICES = ["sonnet", "haiku", "gemini"] as const;
@@ -46,7 +46,7 @@ export function withModelChoice(handler: (req: Request) => Promise<Response>) {
 export function bedrockConfig() {
   const apiKey = cleanKey(process.env.BEDROCK_API_KEY);
   const fromEnv = process.env.LLM_PROVIDER?.trim().toLowerCase();
-  const choice: ModelChoice = requestChoice.getStore() ?? (isChoice(fromEnv) ? fromEnv : "sonnet");
+  const choice: ModelChoice = requestChoice.getStore() ?? (isChoice(fromEnv) ? fromEnv : "haiku");
   const endpoint = process.env.BEDROCK_ENDPOINT === "runtime" ? "runtime" : "mantle";
   const model =
     choice === "gemini"
@@ -139,17 +139,28 @@ function request(call: BaseCall, extra: Partial<Anthropic.MessageCreateParamsNon
  */
 function decodeJsonStrings(input: unknown): unknown {
   if (!input || typeof input !== "object" || Array.isArray(input)) return input;
-  return Object.fromEntries(
-    Object.entries(input).map(([key, value]) => {
-      if (typeof value !== "string" || !/^\s*[[{]/.test(value)) return [key, value];
+  const out: Record<string, unknown> = {};
+  const spilled: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    out[key] = value;
+    if (typeof value !== "string" || !/^\s*[[{]/.test(value)) continue;
+    try {
+      const decoded = JSON.parse(value);
+      if (decoded && typeof decoded === "object") out[key] = decoded;
+    } catch {
+      // The model sometimes runs the remaining fields into this string ('[...], "confidence": {...}');
+      // read it as the rest of the object and keep the fields that were swallowed.
       try {
-        const decoded = JSON.parse(value);
-        return [key, decoded && typeof decoded === "object" ? decoded : value];
+        const rest = JSON.parse(`{"${key}": ${value}}`) as Record<string, unknown>;
+        out[key] = rest[key];
+        Object.assign(spilled, rest);
       } catch {
-        return [key, value];
+        // leave the string for the schema check to report
       }
-    }),
-  );
+    }
+  }
+  for (const [key, value] of Object.entries(spilled)) if (!(key in out)) out[key] = value;
+  return out;
 }
 
 /** Plain call that returns the final message (used for the citation-backed fact ledger). */
@@ -163,14 +174,14 @@ export async function callMessage(call: BaseCall): Promise<Anthropic.Message> {
 /**
  * Ask Claude to report through one tool and validate the input against the schema.
  * Forced tool_choice is not available on Sonnet 5.5, so we ask with "auto" and
- * give one corrective retry if the tool was skipped or the input didn't validate.
+ * give up to two corrective retries if the tool was skipped or the input didn't validate.
  */
 export async function callTool<T>(
   call: BaseCall & { tools: Anthropic.Tool[]; toolName: string; schema: z.ZodType<T> },
 ): Promise<T> {
   let messages = [...call.messages];
   let lastProblem = "no tool call";
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     const msg = await request({ ...call, messages }, { tools: call.tools, tool_choice: { type: "auto" } });
     addUsage(call.usage, msg.usage);
     if (msg.stop_reason === "refusal") throw new RefusalError(`${call.label}: the model declined this request`);

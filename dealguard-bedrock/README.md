@@ -19,8 +19,8 @@ Demo mode replays a sample analysis of the fictional deal in `public/sample-deal
 
 | PartyRock | Bedrock version |
 |---|---|
-| 15 text widgets on one long page | Guided flow: setup → live pipeline → decision dashboard with 5 tabs |
-| Risk score written by the model | Deterministic 100-point score from finding severities, with the formula shown |
+| 15 text widgets on one long page | Guided flow: setup → live pipeline → action plan and negotiation reply, with detail tabs behind them |
+| Risk score written by the model | Each of 23 provisions graded Normal, Unfavourable or Deal-breaker. Rule checks against your red lines and CIPAA 2012 set a minimum grade, so a term that breaks a rule can't come back Normal |
 | Funding "calculator" written by the model | Week-by-week cash model from the extracted payment terms, with a 30-days-late stress line |
 | Free-text outputs | Every agent returns validated, schema-checked data that drives charts |
 | No way to check a claim | **Click-to-source evidence**: every finding links to the verified quote and page, and the PDF opens at that page |
@@ -36,9 +36,10 @@ Deal inputs + documents
         ├─ Payment & Certification   ┐
         ├─ Scope, BQ & Variations    │
         ├─ Time, EOT & LAD           │ 5 specialists in parallel, sharing
-        ├─ Termination & Remedies    │ the cached document prefix
-        └─ Consistency & Counterparty┘
-             ├─ Risk scoring           (code)
+        ├─ Termination, Security &   │ the cached document prefix
+        │  Disputes                  │
+        └─ Documents & Counterparty  ┘
+             ├─ Rule checks & grading  (code)
              └─ Funding exposure       (code)
                   └─ Decision & Negotiation Strategist (Claude)
                        └─ Advisor chat (Claude, streaming)
@@ -58,10 +59,10 @@ Deal inputs + documents
 | `src/lib/playbook.ts` | Red lines and CIPAA 2012 benchmark checks, in code |
 | `src/lib/prompts.ts`, `src/lib/schemas.ts` | Agent and drafting prompts, output schemas |
 | `src/lib/ledger.ts` | Turns citations into the fact ledger |
-| `src/lib/scoring.ts`, `src/lib/funding.ts` | Deterministic score and cash model |
+| `src/lib/rubric.ts`, `src/lib/funding.ts` | Rule-based grade floors and cash model |
 | `src/lib/bedrock.ts` | Bedrock client, tool-call validation and retry |
 | `src/lib/demo.ts` | Demo-mode replay |
 | `src/app/api/*` | `analyze` (NDJSON stream), `chat` and `draft` (text streams), `health` (`?ping=1` tests Bedrock) |
-| `src/components/results/` | Dashboard tabs: overview, contract breakdown, deadlines, cash flow, negotiate, sources, method |
+| `src/components/results/` | Dashboard tabs: action plan, your reply, all 23 points, deadlines, cash flow, sources, how we checked |
 | `src/components/landing/` | Landing page, X-ray lens, scroll-drawn cash curve, pipeline demo |
 | `src/components/` | Setup, 3D pipeline, evidence drawer, chat |

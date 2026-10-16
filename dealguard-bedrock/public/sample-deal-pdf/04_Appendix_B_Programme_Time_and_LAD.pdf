@@ -1,86 +1,470 @@
-%PDF-1.4
-%“Œ‹ž ReportLab Generated PDF document (opensource)
+%PDF-1.3
+%âãÏÓ
 1 0 obj
 <<
-/F1 2 0 R /F2 3 0 R /F3 4 0 R /F4 5 0 R
+/PageMode /UseNone
+/Pages 2 0 R
+/Type /Catalog
 >>
 endobj
 2 0 obj
 <<
-/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font
+/Count 1
+/Kids [ 3 0 R ]
+/Type /Pages
 >>
 endobj
 3 0 obj
 <<
-/BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding /Name /F2 /Subtype /Type1 /Type /Font
+/Contents 4 0 R
+/MediaBox [ 0 0 595.2756 841.8898 ]
+/Parent 2 0 R
+/Resources <<
+/Font 5 0 R
+/ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>>
+/Rotate 0
+/Trans <<
+>>
+/Type /Page
 >>
 endobj
 4 0 obj
 <<
-/BaseFont /Times-Bold /Encoding /WinAnsiEncoding /Name /F3 /Subtype /Type1 /Type /Font
+/Length 8786
 >>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+BT /F2 6.7 Tf 8.04 TL ET
+.333333 .333333 .333333 rg
+BT 1 0 0 1 51 809.8898 Tm (APPENDIX B / PBT-P8-HF) Tj T* ET
+BT /F1 6.7 Tf 8.04 TL ET
+BT 1 0 0 1 405.0563 809.8898 Tm (DEMO RECONSTRUCTION - NOT ORIGINAL) Tj T* ET
+.6 .6 .6 RG
+.5 w
+n 51 798.8898 m 544.2756 798.8898 l S
+.73 .73 .73 RG
+n 51 40 m 544.2756 40 l S
+BT /F1 6.2 Tf 7.44 TL ET
+.4 .4 .4 rg
+BT 1 0 0 1 51 30 Tm (Synthetic demo reconstruction inspired by publicly reported Hiform / PBT litigation. Not an original historical contract.) Tj T* ET
+BT 1 0 0 1 524.6278 30 Tm (Page 1) Tj T* ET
+Q
+q
+1 0 0 1 63 758.8898 cm
+q
+.066667 .066667 .066667 rg
+BT 1 0 0 1 0 3 Tm /F2 16 Tf 19 TL (APPENDIX B) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 743.8898 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 2.5 Tm /F1 8.5 Tf 11 TL (Time, Programme and Liquidated Damages Particulars) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 557.8898 cm
+q
+.945 .945 .945 rg
+n 0 176 122 -176 re f*
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 162.4 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F3 7.7 Tf 9.6 TL (Subcontract duration) Tj T* ET
+Q
+Q
+q
+1 0 0 1 128 162.4 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F4 7.7 Tf 9.6 TL (24 months from written site possession) Tj T* ET
+Q
+Q
+q
+1 0 0 1 6 144.8 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F3 7.7 Tf 9.6 TL (Programme submission) Tj T* ET
+Q
+Q
+q
+1 0 0 1 128 144.8 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F4 7.7 Tf 9.6 TL (Within 14 days after receipt of Letter of Award) Tj T* ET
+Q
+Q
+q
+1 0 0 1 6 127.2 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F3 7.7 Tf 9.6 TL (Master programme interface) Tj T* ET
+Q
+Q
+q
+1 0 0 1 128 127.2 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F4 7.7 Tf 9.6 TL (Hiform programme must tie back to PBT's master works programme) Tj T* ET
+Q
+Q
+q
+1 0 0 1 6 109.6 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F3 7.7 Tf 9.6 TL (Status of Hiform programme) Tj T* ET
+Q
+Q
+q
+1 0 0 1 128 109.6 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F4 7.7 Tf 9.6 TL (Programme itself does not form part of the subcontract) Tj T* ET
+Q
+Q
+q
+1 0 0 1 6 92 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F3 7.7 Tf 9.6 TL (EOT initial notice) Tj T* ET
+Q
+Q
+q
+1 0 0 1 128 92 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F4 7.7 Tf 9.6 TL (Within 7 calendar days after becoming aware of delaying event) Tj T* ET
+Q
+Q
+q
+1 0 0 1 6 74.4 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F3 7.7 Tf 9.6 TL (EOT notice status) Tj T* ET
+Q
+Q
+q
+1 0 0 1 128 74.4 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F4 7.7 Tf 9.6 TL (Condition precedent to EOT entitlement) Tj T* ET
+Q
+Q
+q
+1 0 0 1 6 56.8 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F3 7.7 Tf 9.6 TL (Detailed particulars) Tj T* ET
+Q
+Q
+q
+1 0 0 1 128 56.8 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F4 7.7 Tf 9.6 TL (Within 14 calendar days after initial notice) Tj T* ET
+Q
+Q
+q
+1 0 0 1 6 39.2 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F3 7.7 Tf 9.6 TL (LAD rate) Tj T* ET
+Q
+Q
+q
+1 0 0 1 128 39.2 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F4 7.7 Tf 9.6 TL (RM32,500 per calendar day for culpable delay) Tj T* ET
+Q
+Q
+q
+1 0 0 1 6 21.6 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F3 7.7 Tf 9.6 TL (Aggregate LAD cap) Tj T* ET
+Q
+Q
+q
+1 0 0 1 128 21.6 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F4 7.7 Tf 9.6 TL (None - no aggregate limit applies) Tj T* ET
+Q
+Q
+q
+1 0 0 1 6 4 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F3 7.7 Tf 9.6 TL (Defects Liability Period) Tj T* ET
+Q
+Q
+q
+1 0 0 1 128 4 cm
+q
+.333333 .333333 .333333 rg
+BT 1 0 0 1 0 1.9 Tm /F4 7.7 Tf 9.6 TL (12 months from practical completion of Hiform works) Tj T* ET
+Q
+Q
+q
+1 J
+1 j
+.467 .467 .467 RG
+.45 w
+n 0 176 m 448.2756 176 l S
+n 0 0 m 448.2756 0 l S
+n 0 0 m 0 176 l S
+n 448.2756 0 m 448.2756 176 l S
+.8 .8 .8 RG
+.25 w
+n 0 158.4 m 448.2756 158.4 l S
+n 0 140.8 m 448.2756 140.8 l S
+n 0 123.2 m 448.2756 123.2 l S
+n 0 105.6 m 448.2756 105.6 l S
+n 0 88 m 448.2756 88 l S
+n 0 70.4 m 448.2756 70.4 l S
+n 0 52.8 m 448.2756 52.8 l S
+n 0 35.2 m 448.2756 35.2 l S
+n 0 17.6 m 448.2756 17.6 l S
+Q
+Q
+Q
+q
+1 0 0 1 63 549.8898 cm
+Q
+q
+1 0 0 1 63 527.8898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 2.6 Tm /F2 9.4 Tf 12 TL (B1. Site Possession and Completion) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 499.0898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 15.6 Tm /F4 9.2 Tf 12.4 TL (The subcontract duration is 24 months from the date of written site-possession notice issued by PBT. Hiform shall plan and) Tj T* (resource the works to meet that duration, subject to any approved Extension of Time.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 477.0898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 2.6 Tm /F2 9.4 Tf 12 TL (B2. Programme Submission and Interface) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 423.4898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 40.4 Tm /F4 9.2 Tf 12.4 TL (Within 14 days after receipt of the Letter of Award, Hiform shall submit its work programme and required technical) Tj T* (submissions for approval before commencement. The programme shall tie back to PBT's master works programme and state) Tj T* (intended manpower and plant deployment. PBT may require reasonable programme revisions where the subcontract works are) Tj T* (delayed. The Hiform programme itself does not form part of the subcontract.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 401.4898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 2.6 Tm /F2 9.4 Tf 12 TL (B3. Extension of Time Events) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 385.0898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 3.2 Tm /F4 9.2 Tf 12.4 TL (Hiform may apply for Extension of Time where delay is materially caused by:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 368.6898 cm
+q
+BT 1 0 0 1 2 3.2 Tm /F1 10 Tf 12 TL .12549 .12549 .12549 rg (-) Tj ET
+.12549 .12549 .12549 rg
+BT 1 0 0 1 12 3.2 Tm /F4 9.2 Tf 12.4 TL (instructed variations;) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 355.2898 cm
+q
+BT 1 0 0 1 2 3.2 Tm /F1 10 Tf 12 TL .12549 .12549 .12549 rg (-) Tj ET
+.12549 .12549 .12549 rg
+BT 1 0 0 1 12 3.2 Tm /F4 9.2 Tf 12.4 TL (delayed access or site possession attributable to PBT;) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 341.8898 cm
+q
+BT 1 0 0 1 2 3.2 Tm /F1 10 Tf 12 TL .12549 .12549 .12549 rg (-) Tj ET
+.12549 .12549 .12549 rg
+BT 1 0 0 1 12 3.2 Tm /F4 9.2 Tf 12.4 TL (late drawings or information PBT is responsible to provide;) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 328.4898 cm
+q
+BT 1 0 0 1 2 3.2 Tm /F1 10 Tf 12 TL .12549 .12549 .12549 rg (-) Tj ET
+.12549 .12549 .12549 rg
+BT 1 0 0 1 12 3.2 Tm /F4 9.2 Tf 12.4 TL (suspension instructed by PBT other than for Hiform default;) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 315.0898 cm
+q
+BT 1 0 0 1 2 3.2 Tm /F1 10 Tf 12 TL .12549 .12549 .12549 rg (-) Tj ET
+.12549 .12549 .12549 rg
+BT 1 0 0 1 12 3.2 Tm /F4 9.2 Tf 12.4 TL (force majeure beyond Hiform's reasonable control;) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 301.6898 cm
+q
+BT 1 0 0 1 2 3.2 Tm /F1 10 Tf 12 TL .12549 .12549 .12549 rg (-) Tj ET
+.12549 .12549 .12549 rg
+BT 1 0 0 1 12 3.2 Tm /F4 9.2 Tf 12.4 TL (delay by statutory authorities not caused by Hiform.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 279.6898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 2.6 Tm /F2 9.4 Tf 12 TL (B4. Notice of Delay) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 238.4898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 28 Tm /F4 9.2 Tf 12.4 TL (Hiform shall give written notice within 7 calendar days after becoming aware of the delaying event. Compliance with this) Tj T* (notice requirement is a condition precedent to Extension of Time entitlement. Detailed particulars may follow within 14) Tj T* (calendar days after the initial notice.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 216.4898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 2.6 Tm /F2 9.4 Tf 12 TL (B5. Liquidated Ascertained Damages) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 187.6898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 15.6 Tm /F4 9.2 Tf 12.4 TL (For culpable delay beyond the applicable completion date, Liquidated Ascertained Damages are RM32,500 per calendar day,) Tj T* (and no aggregate cap or limit applies to the total Liquidated Ascertained Damages payable by Hiform.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 165.6898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 2.6 Tm /F2 9.4 Tf 12 TL (B6. Acceleration) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 136.8898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 15.6 Tm /F4 9.2 Tf 12.4 TL -0.082178 Tw (PBT may request acceleration in writing. Where acceleration is not required to remedy Hiform's own culpable delay, the parties) Tj T* 0 Tw (shall agree the additional cost and any revised programme before acceleration proceeds.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 114.8898 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 2.6 Tm /F2 9.4 Tf 12 TL (B7. Defects Liability Period) Tj T* ET
+Q
+Q
+q
+1 0 0 1 63 98.48976 cm
+q
+.12549 .12549 .12549 rg
+BT 1 0 0 1 0 3.2 Tm /F4 9.2 Tf 12.4 TL (The Defects Liability Period is 12 months from practical completion of Hiform's subcontract works.) Tj T* ET
+Q
+Q
+ 
+
+endstream
 endobj
 5 0 obj
 <<
-/BaseFont /Times-Roman /Encoding /WinAnsiEncoding /Name /F4 /Subtype /Type1 /Type /Font
+/F1 6 0 R
+/F2 7 0 R
+/F3 8 0 R
+/F4 9 0 R
 >>
 endobj
 6 0 obj
 <<
-/Contents 10 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 9 0 R /Resources <<
-/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
->> /Rotate 0 /Trans <<
-
->> 
-  /Type /Page
+/BaseFont /Helvetica
+/Encoding /WinAnsiEncoding
+/Name /F1
+/Subtype /Type1
+/Type /Font
 >>
 endobj
 7 0 obj
 <<
-/PageMode /UseNone /Pages 9 0 R /Type /Catalog
+/BaseFont /Helvetica-Bold
+/Encoding /WinAnsiEncoding
+/Name /F2
+/Subtype /Type1
+/Type /Font
 >>
 endobj
 8 0 obj
 <<
-/Author (DealGuard demo pack) /CreationDate (D:20261012170256+08'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20261012170256+08'00') /Producer (ReportLab PDF Library - \(opensource\)) 
-  /Subject (\(unspecified\)) /Title (APPENDIX B) /Trapped /False
+/BaseFont /Times-Bold
+/Encoding /WinAnsiEncoding
+/Name /F3
+/Subtype /Type1
+/Type /Font
 >>
 endobj
 9 0 obj
 <<
-/Count 1 /Kids [ 6 0 R ] /Type /Pages
+/BaseFont /Times-Roman
+/Encoding /WinAnsiEncoding
+/Name /F4
+/Subtype /Type1
+/Type /Font
 >>
 endobj
 10 0 obj
 <<
-/Filter [ /ASCII85Decode /FlateDecode ] /Length 2595
+/Author (DealGuard demo pack)
+/CreationDate (D\07220261012170256\05308\04700\047)
+/Creator (\050unspecified\051)
+/Keywords ()
+/ModDate (D\07220261012170256\05308\04700\047)
+/Producer (ReportLab PDF Library \055 \050opensource\051)
+/Subject (\050unspecified\051)
+/Title (APPENDIX B)
+/Trapped /False
 >>
-stream
-Gb!#]8U'2Q'#+6Ee7DrKGrA#fgba(m\(uo(\S]=:]]9E^OG"+Q-:)G>n#$NN.TpjDd_T68OT86c'l*Ug$V^K+e8(EOI%%r+?S&EtQnQ9r$jYo*E&YQ,I\B5In-kqD!lJi/N/@C^h=kAIcWIRTf7Lf.)F6%d@%P0qc"qRtG^KH<I"G^5p1\t=$a,!VnkYX&KDEj#ClMt4?>i]]F:H^l-GuZun%M!%oA/T-a-ZVnIm;9JT,ur0*hVTaoR-])rSu-i:Q47`rd4Y;_Jiq)OV1WC)X-i,E#m!'IFmfQ`UInVpo%m)O&)d2*4%jMY@qCGL9dar33CjRd!pCcR[?^,QYe5(>`'(:Sn([e0M>&A<1t"/$6h'C;=Fi,>KEj6/AcXiF7QDoGk3l!b_eem(1JH+MU>?,4D#4.$<\NQ,%WL174IaN`/hF@/6F<[i?kqICrc$]5A9!"fSY=3S,59.8M_6n`-6!<KaA5+VM@B"m(O!q2do$gPFl!Lo"Z\WX62#9H+O][8RLHf\YTTjm^eR<%S@g?W250m7Dc69<b/7_,md)J7IVG6=!D*ai`h_A"\P/e!r&XN=](31F'ZNkDX+aY]ca2:-MecQSdj<DU#<0Qq8-)]BZqq[9ngr3_m1#.(:2DXNmc`=VHS1#SrU-+7KP%=;Crf:J>ar^pDd/YZ@e@:41ipX#8398/n%mn$#Bql,u:3KP!bh+,qmFr4D5+]_B]$;YUqmP.'#c\`apZ)S037+(4QV#(+HBm&_iVeQBE&K%(OA)A4q1*P4%8+RggmB0r*AbAt_!ujXViQCu3l8Uj0R`+WiYf#oNA0;eNWN6W00^Uu8IbiEm]`8q0'jOD(_bXSAj_Arg*;,SB2H--9[tdK]*u*OjN))"oN2\Zh/AO-^DhR(?0H"r\*90ER('L4$Xjr"0<2cfRcB=I2I6,mm9V!YXr]d,,Ud.'S*7ilBN((&\,:@'r]s\cRUP`Q:"MO4fien5l3ARDsHrQ\NUAg*fcI2]B*K$'P%ao/TGgTfS1'P"gTj;a:p;r$Z+"PArCghYAqr/XK/L=EO-V.(3ZC'82Dli3s]f#@5r6an0u&pYk6MYU5E$apA.DD".@F@UH[C#s#$@2Zr.P^^\E=,3CpU7VlI:k=_j7X&[!@XlVh!#['?+N"[K*)8e605m`+/;C&7Wlo.Qj<AJ$6ZR(?1^>tt=Yp!ZdJIVSoB"S].iUTc63*UF=rj1LSjeR1H+d+tM.W';#:=\/ZJGf`Q^EF+33mbSP%<F?:dg^9uNY?(u7@1rl;?a<a?k.(D]nsEOD_-Q56N<0I]9S8t`>M?N2]<9o@iE0k=P[YGm0Ud<IotN?LQSkPPu9Q0iF&m1cn4RQ6VQdV)0G6h,'D]M:>@!6Fksq)GL6+BR,?eo0[@&%0Y9^GJDF<cc@t6354A%\XuE1eL5+5`I^0B,Th^*gG5@)CI;XIKN+Y0"WF6j'`,ZeF%SS`U[qpK`EB,+a6nK2V;8Nf9U#q31+aJO/Z!;L3V5`Rt+Y$4BYsC793%<H1NZjIOd^N*EZJ]:p(&/ILcoioqie2A(aD9?m\g!g)0ItL(9=M]Wlni'HcJAL393DKGd9:&0K"c`9"V:'uD=e\;91to,L>K\g(^LR?O)l9ZLI1%:I_Nk"aMp<#l>!gnM??K9UX`uKfE^Y?nF)W'QB=:7Vj%kLII,$bWN)iP*_`"1NgH8V-am!JlDk=9a6T&BU48E\-m[:q[[+TPG*YUR.q*.`D=AF36b\9b`:GtCC9_kePd##"#JRN"93$!#Q7r$6d!BNZ]\pE/Tn\2JF":QS#!C=KmEr@P36A\rRb"ahEnGL^`dZj]*B!kl#<e9d4Z7\d4rj(Dg/bR,kV'4/\+X7pI8EtAbX?;>JR'_M%p;o4<:d:jcsC+)/a+68])suSHodo;>[Ap@FMR^dlBXT1];UcP&cO:JFXY@sruP1X`S1%5e>Rd;=;YK^!8P>[F"C]s(1L-4'kTM8a45:5?FB_SC;s6LU4R6D,:b?79!54q-)D@K9.XX7m\-TPV#2Sa5-Cq,oKrD,kZV"u?:SDL8Td%K$o:pMV)_Pl>"<PMQ`Q)+\?8jsFaOa+&O#h/$2_^m9JHphc-kbOKqHM:I8CeBMoR]n"T@<MN)#kPHg6DUAd.>N9!0u:iC$t6g+6EC5$EYVJ(dil`%'iHmqeq:`*@dRcEC+;,WN@8#4L%_h0Z6A.rX1r\rGMcGCl\1jM<:6TppAEdX!d@,MMF/=c98+&Sb,jM(nM-2p\Apb$sh8b(-r2O]5apAoX>X)Jq%'Q2d.RUr;cHBA=:SmsH.4C\5Al\g^!QTLrqmA^hP0/+AVmat[AtAaeEPaUMc(l;b(aeS1^?&g5t2n#/Kg,9/g`]'=Lg*S1>C*X7<LVsU\6BF)etF.1L9ZTRu060oJ.K@N3KmsL6eE[T_K9R:6=Y"^Gq[cM"XDr@qYgnRkK8((d3VcMc9Z"^uqWgt+>lU9Cq)u<#biR,*7"kb6YEJZ3R!@lqek;3nhSQ-MES)t54dNP_&OU)nP&s6;82(3-B[SYGL!BM203KM>Q/[_,?*E)Zs:l[Yj6OZnYT7-/jm"!a<+V_:n8"J,f%doIh?$jH-rrHfL_9r~>endstream
 endobj
 xref
 0 11
 0000000000 65535 f 
-0000000061 00000 n 
-0000000122 00000 n 
-0000000229 00000 n 
+0000000015 00000 n 
+0000000083 00000 n 
+0000000142 00000 n 
 0000000341 00000 n 
-0000000449 00000 n 
-0000000558 00000 n 
-0000000762 00000 n 
-0000000830 00000 n 
-0000001113 00000 n 
-0000001172 00000 n 
+0000009179 00000 n 
+0000009240 00000 n 
+0000009347 00000 n 
+0000009459 00000 n 
+0000009567 00000 n 
+0000009676 00000 n 
 trailer
 <<
-/ID 
-[<de9c633629018e5149bce757c171a4f9><de9c633629018e5149bce757c171a4f9>]
-% ReportLab generated PDF document -- digest (opensource)
-
-/Info 8 0 R
-/Root 7 0 R
 /Size 11
+/Root 1 0 R
+/Info 10 0 R
+/ID [ <de9c633629018e5149bce757c171a4f9> <de9c633629018e5149bce757c171a4f9> ]
 >>
 startxref
-3859
+9996
 %%EOF

@@ -59,9 +59,9 @@ interface Band {
 // The four labelled layers drawn as tinted plates under their rows.
 const BANDS: Band[] = [
   { title: "Your deal", sub: "Deal details and documents", layers: [0] },
-  { title: "Read & verify", sub: "Classify documents, pull facts with quotes", layers: [1] },
-  { title: "Expert team", sub: "5 specialists review in parallel", layers: [2] },
-  { title: "Scoring & decision", sub: "Rule checks, funding, final verdict", layers: [3, 4] },
+  { title: "Document analyst", sub: "Classify documents, pull facts with quotes", layers: [1] },
+  { title: "Five specialists", sub: "Review in parallel, from five angles", layers: [2] },
+  { title: "Senior reviewer", sub: "Rule checks, funding, final verdict", layers: [3, 4] },
 ].map((b) => {
   const nodes = NODES.filter((n) => b.layers.includes(n.layer));
   const widest = Math.max(...b.layers.map((l) => nodes.filter((n) => n.layer === l).length));

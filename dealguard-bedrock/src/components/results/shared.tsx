@@ -54,7 +54,7 @@ export function CheckRow({ check, compact }: { check: PlaybookCheck; compact?: b
 
 export const GRADE_STYLE: Record<Grade, { label: string; color: string; text: string; soft: string; Icon: typeof CircleCheck }> = {
   deal_breaker: { label: "Deal-breaker", color: "var(--critical)", text: "var(--critical-text)", soft: "var(--critical-soft)", Icon: OctagonAlert },
-  unfavourable: { label: "Worth negotiating", color: "var(--serious)", text: "var(--serious-text)", soft: "var(--serious-soft)", Icon: TriangleAlert },
+  unfavourable: { label: "Worth negotiating", color: "var(--warning)", text: "var(--warning-text)", soft: "var(--warning-soft)", Icon: TriangleAlert },
   normal: { label: "Normal", color: "var(--good)", text: "var(--good-text)", soft: "var(--good-soft)", Icon: CircleCheck },
 };
 

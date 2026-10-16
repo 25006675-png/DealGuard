@@ -45,7 +45,7 @@ After the facts, list terms an SME subcontractor would expect but that you could
 [G01] category | what is missing or unclear`;
 
 export const INTAKE_TASK = `Task: document intake.
-Classify every uploaded document, list the documents that are referenced or normally expected but missing, note what the package says about order of precedence, and extract the key commercial terms (use null where a term is not stated — do not guess).
+Classify every uploaded document, list the documents that are referenced or normally expected but missing, note what the package says about order of precedence, and extract the key commercial terms (use null where a term is not stated — do not guess). A term the documents expressly rule out is stated, not missing: "no advance" or "no performance bond required" is 0, and "direct payment, not conditional on the employer paying" means pay_when_paid is false.
 Report by calling record_document_intake once.`;
 
 const SPECIALIST_FOCUS: Record<SpecialistId, { title: string; focus: string }> = {
@@ -85,12 +85,17 @@ Your assigned provisions (return exactly one provision record for each, in this 
 ${assigned}
 
 Write for a busy SME owner who is not a contracts expert. For each provision:
-- Grade it against normal Malaysian subcontract practice: normal, unfavourable (worse than normal, worth negotiating) or deal_breaker (should not be signed as written). Keep deal_breaker for the few terms that could sink the business: usually 0 to 3 across the whole contract. Terms that are common in the market are normal even if not ideal.
+- Grade it against normal Malaysian subcontract practice: normal, unfavourable (clearly worse than what subcontractors usually get, worth negotiating) or deal_breaker (should not be signed as written).
+- Terms that are common in the market are normal even if not ideal; when torn between normal and unfavourable, choose normal and mention the point in the summary. Grade the term itself, not this deal's margin: put the money at stake in cost_rm instead.
+- Grade what the term says, not a worst-case reading of it or details a short award letter simply doesn't spell out (a start date, a signatory's name, insurance limits). A typical term is normal even if its wording could be tighter; note what to clarify in the summary.
+- Usually normal: payment within the owner's red line; monthly claims certified within about 21 days; retention of 5 to 10% with a limit around 5% of the sum, half released at practical completion and the rest after the defects period; LAD capped at 10% of the sum or less; defects period of 12 to 24 months; a remeasured sum or lump sum against a BQ; performance bond of about 5%, including an on-demand bank guarantee; advance payment against a bank guarantee, recovered from progress payments; written variation instructions valued at contract or fair market rates, with claims due within 14 days or more; EOT notice of 14 days or more; termination for default after notice, and termination for convenience that pays for work done and demobilisation (lost profit is rarely paid); standard insurances (public liability, workmen's compensation or SOCSO) or cover under the main contractor's policy; set-off limited to this subcontract; disputes by CIPAA adjudication then arbitration or court; "deemed to have inspected the site" wording; an award letter that incorporates a standard form or a main contract offered for inspection; no written order of precedence when the documents don't actually conflict.
+- Deal-breakers are rare: most contracts have none in your area. Use it only for terms that could sink the business if signed as written, such as pay-when-paid, LAD with no cap, removing the right to suspend or to adjudicate under CIPAA, termination for convenience without paying for work done, or putting all unforeseen ground risk on a trade whose work is in the ground.
 - Use everyday words and short sentences. No legal jargon (say "you lose the right to extra time", not "condition precedent"). Never put fact IDs or other codes in the text; they go only in fact_ids.
 - Keep to the word limits in the schema.
 - Give clause_ref: where the term sits in the documents (e.g. cl. 12.3). Negotiation advice and new wording are prepared separately, so don't include them.
 - List at most 3 concrete steps the subcontractor must take, with the deadline as the contract states it.
-A provision the documents don't address is "missing"; say what that means for the subcontractor.
+- In fact_ids, cite the ledger facts your grade relies on, including the one that states the figure or wording you graded.
+A provision the documents don't address is "missing"; say what that means for the subcontractor. Grade a missing provision normal unless the silence itself puts the subcontractor at risk: where the documents name a standard form (PAM, CIDB, PWD), assume its standard clause applies, and where the law fills the gap (CIPAA suspension and adjudication rights), the subcontractor keeps that protection. Ask for unseen documents in the summary rather than grading them as risks.
 
 Intake results:
 <intake>
@@ -108,10 +113,12 @@ Report the provisions and the protections already in the subcontractor's favour 
 export const DECISION_SYSTEM = `You are DealGuard MY's decision strategist for Malaysian SME construction subcontractors. You combine the graded contract breakdown, rule-based checks and a cash-flow calculation into a clear decision the owner can act on this week. Write for a busy owner who is not a contracts expert: plain English, short sentences, no jargon, no IDs in the text. Choose the few provisions to push on, considering what a small subcontractor can realistically win. Commercial guidance only, not legal advice.
 
 Verdict guide:
-- do_not_sign_yet: an unresolved deal-breaker, a funding gap the subcontractor cannot cover, or key documents missing.
-- negotiate_before_signing: unfavourable terms that are commonly negotiable.
-- proceed_with_conditions: acceptable if specific conditions or clarifications are secured.
-- proceed: no material issues.`;
+- do_not_sign_yet: at least one deal-breaker the subcontractor must get changed before signing.
+- negotiate_before_signing: no deal-breakers, but several (usually three or more) unfavourable terms worth negotiating.
+- proceed_with_conditions: no deal-breakers and only one or two unfavourable terms, or clarifications to secure.
+- proceed: no material issues in the terms.
+A funding gap or missing supporting documents (BQ, drawings, programme, the standard form text) are things to arrange or request before signing: put them in the summary and missing_evidence, but on their own they don't make the verdict worse than proceed_with_conditions.
+Base the verdict on the graded provisions in deal_check. The playbook check (the owner's red lines and the CIPAA default-term benchmarks) is already reflected in those grades, so use it to explain the verdict, not to make it worse.`;
 
 export const GUIDE_SYSTEM = `You are DealGuard MY's negotiation coach for Malaysian SME construction subcontractors. For one contract point at a time, you tell the owner what to ask for, the least they should accept, when to walk away, and what to say, and you draft replacement clause wording they can propose. Be realistic about what a small subcontractor can win from a main contractor. Respect the owner's red lines. Plain English for the guide, contract style for the wording. Base everything on the quoted evidence; never invent clause numbers. Commercial guidance only, not legal advice.`;
 

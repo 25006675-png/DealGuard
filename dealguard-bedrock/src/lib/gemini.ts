@@ -4,9 +4,11 @@ import type Anthropic from "@anthropic-ai/sdk";
 // when Bedrock credit is short. It translates Anthropic Messages requests to
 // Gemini generateContent and back. Claude-only features are dropped: citations
 // (so ledger quotes come back unverified) and prompt caching.
-// GEMINI_API_KEY, GEMINI_API_KEY_2 and GEMINI_API_KEY_3 are tried in turn on rate limits.
+// GEMINI_API_KEY, GEMINI_API_KEY_2 and GEMINI_API_KEY_3 share the load: each call starts on the
+// next key in turn, and moves on to the others on rate limits.
 
 const API = "https://generativelanguage.googleapis.com/v1beta/models";
+let nextKey = 0;
 
 type Part = { text: string } | { inlineData: { mimeType: string; data: string } } | { functionCall: { name: string; args: unknown } };
 type GeminiResponse = {
@@ -114,12 +116,13 @@ async function generate(model: string, p: Anthropic.MessageCreateParams): Promis
   const all = keys();
   if (!all.length) throw new Error("GEMINI_API_KEY is not set.");
   const body = JSON.stringify(toRequest(p));
+  const start = nextKey++; // spread calls across the keys instead of always starting on the first
   let last = "";
   // Up to 6 tries, moving to the next key on each rate limit or server error.
   for (let attempt = 0; attempt < 6; attempt++) {
     const res = await fetch(`${API}/${model}:generateContent`, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-goog-api-key": all[attempt % all.length] },
+      headers: { "content-type": "application/json", "x-goog-api-key": all[(start + attempt) % all.length] },
       body,
     });
     if (res.ok) return toMessage(model, (await res.json()) as GeminiResponse);

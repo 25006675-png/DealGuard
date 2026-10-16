@@ -14,12 +14,17 @@ export const keyTermsSchema = z.object({
   payment_due_days: num("Days after certification that payment is due, or null"),
   retention_pct: num("Retention deducted from each payment, % of value, or null"),
   retention_cap_pct: num("Retention limit as % of subcontract sum, or null"),
-  advance_payment_pct: num("Advance payment offered as % of subcontract sum, or null"),
+  advance_payment_pct: num("Advance payment offered as % of subcontract sum; 0 if the documents say there is none; null if not mentioned"),
   lad_per_day_rm: num("Liquidated damages in RM per day, or null"),
   lad_cap_pct: num("LAD cap as % of subcontract sum, or null if uncapped or not stated"),
   dlp_months: num("Defects liability period in months, or null"),
-  performance_bond_pct: num("Performance bond as % of subcontract sum, or null"),
-  pay_when_paid: z.boolean().nullable().describe("True if payment depends on the contractor being paid by the employer"),
+  performance_bond_pct: num("Performance bond as % of subcontract sum; 0 if the documents say none is required; null if not mentioned"),
+  pay_when_paid: z
+    .boolean()
+    .nullable()
+    .describe(
+      "True if payment depends on the contractor being paid by the employer (pay-when-paid, pay-if-paid, back-to-back payment). False if the documents say payment is direct or not conditional on the employer paying, or set a fixed payment period with no such condition. Null only if payment terms aren't addressed at all",
+    ),
 });
 
 // Guards against uploads that have nothing to do with a construction deal (a menu, a CV, a random article).
@@ -72,10 +77,10 @@ export const specialistSchema = z.object({
         status: z.enum(["present", "missing", "unclear"]),
         headline: z.string().describe("The point in everyday words, max 10 words, e.g. 'You only get paid after they get paid'"),
         summary: z.string().describe("What the documents say, max 40 words, plain English, with the key figures"),
-        grade: grade.describe("normal = usual market practice; unfavourable = worse than normal, worth negotiating; deal_breaker = should not be signed as written (rare: usually 0-3 per contract)"),
-        why: z.string().describe("Why it matters to the subcontractor, max 30 words, everyday language, no legal jargon. Empty string if normal"),
-        normal: z.string().describe("What is normal in Malaysian subcontracts, max 15 words, e.g. 'Paid within 30 days of your claim'"),
         yours: z.string().describe("What this contract says, max 15 words, e.g. 'Paid up to 81 days after you claim'"),
+        normal: z.string().describe("What is normal in Malaysian subcontracts, max 15 words, e.g. 'Paid within 30 days of your claim'"),
+        grade: grade.describe("Compare yours with normal. normal = in line with usual market practice, even if the wording could be tighter; unfavourable = clearly worse than normal, worth negotiating; deal_breaker = should not be signed as written (rare)"),
+        why: z.string().describe("Why it matters to the subcontractor, max 30 words, everyday language, no legal jargon. Empty string if normal"),
         cost_rm: z.number().nullable().describe("Rough RM the subcontractor could lose or have to fund because of this term, or null"),
         cost_note: z.string().nullable().describe("How cost_rm is worked out, max 15 words"),
         clause_ref: z.string().nullable().describe("Where this is in the documents, e.g. 'cl. 12.3' or 'LOA para 7'; null if not covered"),
