@@ -23,11 +23,8 @@ const reveal = {
 function CTA({ className = "" }: { className?: string }) {
   return (
     <div className={`flex flex-wrap gap-3 ${className}`}>
-      <Link href="/app?sample=1" className="inline-flex h-12 items-center gap-2 rounded-xl bg-brand px-5 text-[15px] font-medium text-on-brand transition-colors hover:bg-brand-hover">
-        Try the sample deal <ArrowRight size={16} aria-hidden />
-      </Link>
-      <Link href="/app" className="inline-flex h-12 items-center rounded-xl border border-line-strong bg-surface px-5 text-[15px] font-medium hover:bg-surface-2">
-        Review your own deal
+      <Link href="/app" className="inline-flex h-12 items-center gap-2 rounded-xl bg-brand px-5 text-[15px] font-medium text-on-brand transition-colors hover:bg-brand-hover">
+        Review a deal <ArrowRight size={16} aria-hidden />
       </Link>
     </div>
   );
@@ -92,7 +89,7 @@ export function Landing() {
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               className="text-[42px] font-semibold leading-[1.04] tracking-[-0.03em] sm:text-[58px]"
             >
-              Read the contract before it reads your bank balance.
+              Know what you&apos;re signing — before you sign.
             </motion.h1>
             <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.6 }} className="mt-6 max-w-xl text-[18px] leading-relaxed text-ink-2">
               When a bigger company hires you for part of a project, DealGuard breaks their Letter of Award and contract into 23 provisions: what each one says, what you
