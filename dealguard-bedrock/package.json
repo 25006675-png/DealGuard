@@ -11,8 +11,10 @@
   "dependencies": {
     "@anthropic-ai/bedrock-sdk": "^0.34.4",
     "@anthropic-ai/sdk": "^0.132.1",
+    "@aws-sdk/credential-provider-web-identity": "^3.972.80",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.1",
+    "@vercel/functions": "^3.10.1",
     "docx": "^9.10.0",
     "lucide-react": "^1.54.0",
     "mammoth": "^1.13.0",

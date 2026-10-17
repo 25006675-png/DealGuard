@@ -1,12 +1,14 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { AnthropicBedrock, AnthropicBedrockMantle } from "@anthropic-ai/bedrock-sdk";
 import type Anthropic from "@anthropic-ai/sdk";
+import { awsCredentialsProvider } from "@vercel/functions/oidc";
 import type { z } from "zod";
 import { geminiClient } from "./gemini";
 
 // Env names avoid the AWS_ prefix because Amplify Hosting reserves it.
 // Without BEDROCK_API_KEY the SDK falls back to AWS_BEARER_TOKEN_BEDROCK,
 // then the standard AWS credential chain (profile, SSO, IAM role).
+// On Vercel, BEDROCK_ROLE_ARN exchanges the deployment's OIDC token for that IAM role instead.
 //
 // BEDROCK_ENDPOINT picks the Bedrock API:
 //   mantle  (default) Messages API at bedrock-mantle.{region}.api.aws, model IDs like anthropic.claude-sonnet-5-5
@@ -45,6 +47,7 @@ export function withModelChoice(handler: (req: Request) => Promise<Response>) {
 
 export function bedrockConfig() {
   const apiKey = cleanKey(process.env.BEDROCK_API_KEY);
+  const roleArn = process.env.BEDROCK_ROLE_ARN?.trim() || undefined;
   const fromEnv = process.env.LLM_PROVIDER?.trim().toLowerCase();
   const choice: ModelChoice = requestChoice.getStore() ?? (isChoice(fromEnv) ? fromEnv : "haiku");
   const endpoint = process.env.BEDROCK_ENDPOINT === "runtime" ? "runtime" : "mantle";
@@ -62,7 +65,8 @@ export function bedrockConfig() {
     model,
     endpoint,
     apiKey,
-    auth: apiKey || process.env.AWS_BEARER_TOKEN_BEDROCK ? "bedrock-api-key" : "aws-credentials",
+    roleArn,
+    auth: apiKey || process.env.AWS_BEARER_TOKEN_BEDROCK ? "bedrock-api-key" : roleArn ? "vercel-oidc-role" : "aws-credentials",
   } as const;
 }
 
@@ -79,7 +83,9 @@ export function getClient(): BedrockClient {
   const key = cfg.provider === "gemini" ? `gemini:${cfg.model}` : `bedrock:${cfg.endpoint}`;
   let client = clients.get(key);
   if (!client) {
-    const opts = { awsRegion: cfg.region, apiKey: cfg.apiKey, maxRetries: 3 };
+    const { roleArn, region } = cfg;
+    const providerChainResolver = roleArn ? async () => awsCredentialsProvider({ roleArn, clientConfig: { region } }) : null;
+    const opts = { awsRegion: region, apiKey: cfg.apiKey, providerChainResolver, maxRetries: 3 };
     client =
       cfg.provider === "gemini"
         ? (geminiClient(cfg.model) as unknown as BedrockClient)

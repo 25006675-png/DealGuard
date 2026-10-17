@@ -26,6 +26,9 @@ export type ProjectType = "private" | "government" | "unknown";
 export type Lang = "en" | "ms";
 
 // Contract forms the setup form offers (after "Not sure") and document prefill may pick.
+// Vercel rejects request bodies over 4.5 MB before they reach the route, so uploads stay under it.
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+
 export const STANDARD_FORMS = ["PAM 2018 Subcontract", "CIDB 2022 Subcontract", "PWD 203A / 203N (nominated)", "Bespoke (main contractor's own conditions)"] as const;
 
 export interface DealInput {

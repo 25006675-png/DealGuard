@@ -37,13 +37,13 @@ async function handle(req: Request) {
       advance_payment_rm: null,
       standard_form: "Bespoke (main contractor's own conditions)",
       project_type: "private",
-      missing_documents: localizeDemo(INTAKE.missing_documents, toLang(form.get("lang"))),
+      missing_documents: localizeDemo(INTAKE.missing_documents, toLang(form.get("lang"))).slice(0, 3),
     };
     return Response.json(sample);
   }
 
   if (files.length > MAX_FILES) return bad(`Upload at most ${MAX_FILES} files.`);
-  if (files.reduce((s, f) => s + f.size, 0) > MAX_TOTAL_BYTES) return bad("Files are larger than 14 MB in total.");
+  if (files.reduce((s, f) => s + f.size, 0) > MAX_TOTAL_BYTES) return bad("Files are larger than 4 MB in total.");
   let docs: PreparedDoc[];
   try {
     docs = await prepareFiles(files);
@@ -76,7 +76,7 @@ async function handle(req: Request) {
       contract_sum_rm: amount(out.contract_sum_rm),
       completion_weeks: amount(out.completion_weeks),
       advance_payment_rm: amount(out.advance_payment_rm),
-      missing_documents: out.missing_documents.slice(0, 6),
+      missing_documents: out.missing_documents.slice(0, 3),
     };
     return Response.json(result);
   } catch (err) {

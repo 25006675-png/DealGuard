@@ -6,7 +6,7 @@ import { useMemo, useRef, useState, type ReactNode } from "react";
 import { rmCompact } from "@/lib/format";
 import { computeFunding } from "@/lib/funding";
 import { DEFAULT_RED_LINES, RED_LINE_FIELDS, type RedLines } from "@/lib/playbook";
-import { STANDARD_FORMS, type DealInput, type DealStage, type ProjectType } from "@/lib/types";
+import { MAX_UPLOAD_BYTES, STANDARD_FORMS, type DealInput, type DealStage, type ProjectType } from "@/lib/types";
 import { useLang } from "./lang";
 import { Button, cx, Sheet } from "./ui";
 
@@ -238,13 +238,12 @@ export function SetupView({
   }
 
   const deal = useMemo(() => formToDeal(form), [form]);
-  // Wrong documents stop the review; missing ones need the user's go-ahead (tied to this read of the files).
-  const [acceptedFor, setAcceptedFor] = useState<PrefillState | null>(null);
+  // Wrong documents stop the review; missing ones are flagged but don't block it.
   const missing = files.length && prefill.status === "done" ? prefill.missing : [];
-  const awaitingAnswer = missing.length > 0 && acceptedFor !== prefill;
   const checking = files.length > 0 && prefill.status === "reading";
   const wrongDocs = files.length > 0 && prefill.status === "irrelevant";
-  const ready = deal.contractValue > 0 && (demo || files.length > 0) && !checking && !wrongDocs && !awaitingAnswer;
+  const tooBig = files.reduce((s, f) => s + f.size, 0) > MAX_UPLOAD_BYTES;
+  const ready = deal.contractValue > 0 && (demo || files.length > 0) && !checking && !wrongDocs && !tooBig;
   const customRedLines = JSON.stringify(form.redLines) !== JSON.stringify(DEFAULT_RED_LINES);
   const filled = new Map(files.map((f) => [slotFor(f.name), f] as const));
 
@@ -299,7 +298,7 @@ export function SetupView({
             </span>
             <p className="mt-4 text-[18px] font-semibold">{t("Drop your Letter of Award, subcontract and BQ")}</p>
             <p className="mt-1 text-[13.5px] text-ink-3">
-              {t("or")} <span className="font-medium text-brand">{t("browse files")}</span> {t("· PDF, Word, CSV, text or photos · up to 14 MB")}
+              {t("or")} <span className="font-medium text-brand">{t("browse files")}</span> {t("· PDF, Word, CSV, text or photos · up to 4 MB")}
             </p>
             <input ref={input} type="file" multiple accept={ACCEPT} className="hidden" onChange={(e) => addFiles(e.target.files)} />
           </div>
@@ -355,6 +354,12 @@ export function SetupView({
               {t("Filled in from your documents: {fields}. Check them before you continue.", { fields: prefill.filled.map((f) => t(f)).join(", ") })}
             </p>
           ) : null}
+          {tooBig ? (
+            <p role="alert" className="mt-3 flex items-start gap-2 rounded-lg px-3 py-2 text-[13.5px]" style={{ background: "var(--warning-soft)", color: "var(--warning-text)" }}>
+              <TriangleAlert size={15} className="mt-0.5 shrink-0" aria-hidden />
+              <span>{t("Files are larger than 4 MB in total. Remove drawings or large scans and try again.")}</span>
+            </p>
+          ) : null}
           {files.length && prefill.status === "irrelevant" ? (
             <p role="alert" className="mt-3 flex items-start gap-2 rounded-lg px-3 py-2 text-[13.5px]" style={{ background: "var(--warning-soft)", color: "var(--warning-text)" }}>
               <TriangleAlert size={15} className="mt-0.5 shrink-0" aria-hidden />
@@ -378,18 +383,7 @@ export function SetupView({
                   </li>
                 ))}
               </ul>
-              {awaitingAnswer ? (
-                <div className="mt-2.5 flex flex-wrap gap-2 pl-6">
-                  <Button type="button" size="sm" onClick={() => input.current?.click()}>
-                    <Plus size={14} aria-hidden /> {t("Add files")}
-                  </Button>
-                  <Button type="button" size="sm" variant="ghost" onClick={() => setAcceptedFor(prefill)}>
-                    {t("Continue without them")}
-                  </Button>
-                </div>
-              ) : (
-                <p className="mt-2 pl-6">{t("Continuing without them. The result will say what was missing.")}</p>
-              )}
+              <p className="mt-2 pl-6">{t("Continuing without them. The result will say what was missing.")}</p>
             </div>
           ) : null}
 
@@ -495,9 +489,7 @@ export function SetupView({
                     ? t("Upload construction deal documents to continue")
                     : checking
                       ? t("Checking your documents…")
-                      : awaitingAnswer
-                        ? t("Add the missing documents or continue without them")
-                        : t("Add the subcontract value and at least one document")}
+                      : t("Add the subcontract value and at least one document")}
               </p>
               <button type="button" onClick={() => setRedLinesOpen(true)} className="mt-4 flex w-full items-center justify-between rounded-lg border border-line px-3 py-2 text-left text-[13px] hover:bg-surface-2">
                 <span className="flex items-center gap-2">

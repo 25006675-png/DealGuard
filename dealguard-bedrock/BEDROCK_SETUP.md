@@ -126,6 +126,30 @@ Options:
 
 1. **Demo from your laptop** (works today). Run `npm run build && npm start` locally. Good enough for a judged live demo.
 2. **Container on AWS** (keeps streaming). Run `npm run build && npm start` in a Node container on ECS/Fargate or Elastic Beanstalk behind a load balancer, with the idle timeout raised to about 300 s and an IAM task role carrying the Option B policy. No code changes needed.
-3. **Make it Amplify-compatible.** Downgrade to Next.js 15 and change the analysis to run as one request per pipeline stage instead of one long stream. This is a moderate code change, and Amplify's per-request time limit still needs checking against the slowest agent.
+3. **Vercel** (keeps streaming, recommended). Auth through an IAM role, no stored AWS secret. See below.
+4. **Make it Amplify-compatible.** Downgrade to Next.js 15 and change the analysis to run as one request per pipeline stage instead of one long stream. This is a moderate code change, and Amplify's per-request time limit still needs checking against the slowest agent.
+
+### Vercel
+
+Vercel signs each deployment with an OIDC token, and AWS exchanges it for short-lived credentials of an IAM role. Nothing secret is stored in Vercel.
+
+1. **Vercel → Project → Settings → Security → OIDC Federation**: enable it, issuer mode **Team**. Note your team slug.
+2. **AWS IAM → Identity providers → Add provider → OpenID Connect**: provider URL `https://oidc.vercel.com/<team-slug>`, audience `https://vercel.com/<team-slug>`.
+3. **AWS IAM → Roles → Create role → Web identity**: pick that provider and audience, attach the Option B policy (or the `bedrock:InvokeModel*` actions for `BEDROCK_ENDPOINT=runtime`), then limit the trust policy to this project's production deployments:
+
+   ```json
+   "Condition": {
+     "StringEquals": { "oidc.vercel.com/<team-slug>:aud": "https://vercel.com/<team-slug>" },
+     "StringLike": { "oidc.vercel.com/<team-slug>:sub": "owner:<team-slug>:project:<project-name>:environment:production" }
+   }
+   ```
+
+4. **Vercel project settings**:
+   - Root Directory: `dealguard-bedrock`
+   - Functions region: `sin1` (Singapore, next to `ap-southeast-1`)
+   - Environment variables (Production): `DEALGUARD_DEMO=0`, `BEDROCK_REGION`, `BEDROCK_MODEL_ID`, `BEDROCK_ROLE_ARN=<the role ARN>`. Leave `BEDROCK_API_KEY` empty, since an API key takes precedence over the role.
+5. Deploy, then open `https://<your-domain>/api/health?ping=1`. Expect `"auth":"vercel-oidc-role"` and `"reply":"connected"`.
+
+Vercel rejects request bodies over 4.5 MB before they reach the app, so uploads are capped at 4 MB in total. `/api/analyze` runs for up to 300 s, which fits Vercel's limits. Use a Pro plan for anything beyond a personal demo, because Hobby is non-commercial only.
 
 Whichever host you pick, protect the URL (for example with Amplify/ALB basic auth). An open URL lets anyone run analyses on your AWS bill.

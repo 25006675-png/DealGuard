@@ -1,8 +1,8 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import mammoth from "mammoth";
-import type { DocMeta } from "./types";
+import { MAX_UPLOAD_BYTES, type DocMeta } from "./types";
 
-export const MAX_TOTAL_BYTES = 14 * 1024 * 1024; // Bedrock caps request payloads at 20 MB; base64 adds ~33%
+export const MAX_TOTAL_BYTES = MAX_UPLOAD_BYTES;
 export const MAX_FILES = 12;
 
 type ImageType = "image/png" | "image/jpeg" | "image/webp" | "image/gif";

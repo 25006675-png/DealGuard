@@ -56,7 +56,7 @@ async function handle(req: Request) {
     if (!files.length) return bad("Upload at least one deal document.");
     if (files.length > MAX_FILES) return bad(`Upload at most ${MAX_FILES} files.`);
     const total = files.reduce((s, f) => s + f.size, 0);
-    if (total > MAX_TOTAL_BYTES) return bad("Files are larger than 14 MB in total. Remove drawings or large scans and try again.");
+    if (total > MAX_TOTAL_BYTES) return bad("Files are larger than 4 MB in total. Remove drawings or large scans and try again.");
     try {
       docs = await prepareFiles(files);
     } catch (err) {
