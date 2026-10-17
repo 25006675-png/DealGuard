@@ -4,7 +4,7 @@
    highlighter amber for quoted contract text, fixed status colours for risk. */
 :root {
   color-scheme: light;
-  --bg: #f4f2ed;
+  --bg: #fbfaf7;
   --surface: #ffffff;
   --surface-2: #faf8f4;
   --sunken: #eeebe4;
